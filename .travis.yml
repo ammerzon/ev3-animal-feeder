@@ -3,3 +3,5 @@ jdk:
   - oraclejdk9
 before_install:
   - chmod +x gradlew
+before_script:
+  - bundle exec danger
