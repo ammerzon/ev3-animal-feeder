@@ -25,6 +25,8 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile group: 'com.github.ev3dev-lang-java', name: 'ev3dev-lang-java', version: '0.7.0'
+    compile group: 'com.github.ev3dev-lang-java', name: 'lejos-navigation', version: '0.2.0'
+    compile group: 'com.github.ev3dev-lang-java', name: 'lejos-commons', version: '0.6.0'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
