@@ -1,6 +1,7 @@
 # EV3 Animal Feeder
 
 [![Build Status](https://travis-ci.com/ammerzon/ev3-animal-feeder.svg?token=4Kip5GQScgZEa2GStX8U&branch=master)](https://travis-ci.com/ammerzon/ev3-animal-feeder)
+[![Dependency Status](https://www.versioneye.com/user/projects/5a5f44130fb24f002f358808/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5a5f44130fb24f002f358808)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A program for an EV3 robot to collect blocks and bring them to the correct stable to feed animals as part of a project in SPT1UE SS18 at [FH OÖ Campus Hagenberg](https://www.fh-ooe.at/en/hagenberg-campus).
