@@ -1,5 +1,8 @@
 package com.angrynerds.ev3
 
+import lejos.hardware.Button;
+
 fun main(args: Array<String>) {
-    println("Hello World")
+    print("Hello world!")
+    Button.waitForAnyPress()
 }
