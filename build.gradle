@@ -44,5 +44,5 @@ compileTestKotlin {
 }
 
 mindstorms {
-    main = 'com.angrynerds.ev3.Main'
+    main = 'com.angrynerds.ev3.MainKt'
 }
