@@ -27,6 +27,7 @@ The robot should at least have the following features
 ## ☑️ TODO
 - [ ] Use [RxJava](https://github.com/ReactiveX/RxJava) like [rx-mindstorm](https://github.com/bdeneuter/rx-mindstorms)?
 - [ ] Implement centralized logging
+- [ ] Add Proguard to shrink the jar file
 
 ## ⚙️ Status
 
