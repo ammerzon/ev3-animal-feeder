@@ -3,7 +3,7 @@ package com.angrynerds.ev3.extensions
 import lejos.hardware.sensor.EV3ColorSensor
 import lejos.hardware.sensor.EV3IRSensor
 import lejos.hardware.sensor.EV3UltrasonicSensor
-import java.awt.Color
+import lejos.robotics.Color
 
 fun EV3IRSensor.getDistance(): Float {
     val distanceSample = floatArrayOf(0f)
@@ -17,25 +17,40 @@ fun EV3UltrasonicSensor.getDistance(): Float {
     return distanceSample[0]
 }
 
-fun EV3ColorSensor.getColor(): Color {
-    val rgbMode = this.rgbMode
-    val sample = FloatArray(rgbMode.sampleSize())
-    rgbMode.fetchSample(sample, 0)
-    val r = sample[0]
-    val g = sample[1]
-    val b = sample[2]
-
-    return Color(r, g, b);
+fun EV3ColorSensor.getColor(): java.awt.Color? {
+    when (colorID) {
+        Color.BLACK -> {
+            return java.awt.Color.BLACK
+        }
+        Color.BLUE -> {
+            return java.awt.Color.BLUE
+        }
+        Color.GREEN -> {
+            return java.awt.Color.GREEN
+        }
+        Color.YELLOW -> {
+            return java.awt.Color.YELLOW
+        }
+        Color.RED -> {
+            return java.awt.Color.RED
+        }
+        Color.WHITE -> {
+            return java.awt.Color.WHITE
+        }
+        Color.BROWN -> {
+            return java.awt.Color(139, 69, 19)
+        }
+        else -> {
+            return null
+        }
+    }
 }
 
 fun EV3ColorSensor.getHtmlColor(): String {
-    val color = this.getColor();
-    return String.format("#%02x%02x%02x", color.red, color.green, color.blue)
-}
-
-fun EV3ColorSensor.getColorIDFromSample(): Float {
-    val rgbMode = this.colorIDMode
-    val sample = FloatArray(rgbMode.sampleSize())
-    rgbMode.fetchSample(sample, 0)
-    return sample[0];
+    val color = this.getColor()
+    if (color != null) {
+        return String.format("#%02x%02x%02x", color.red, color.green, color.blue)
+    } else {
+        return "#c44569"
+    }
 }
