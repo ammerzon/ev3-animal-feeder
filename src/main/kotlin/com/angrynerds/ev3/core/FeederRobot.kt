@@ -14,10 +14,10 @@ object FeederRobot {
     var tractionMotorLeft = Motor.A
     var grabMotor = Motor.C
 
-    var infraredSensor = EV3IRSensor(SensorPort.S1)
+    var infraredSensor = EV3IRSensor(SensorPort.S3)
     var colorSensorRight = EV3ColorSensor(SensorPort.S2)
     var colorSensorForward = EV3ColorSensor(SensorPort.S4)
-    var ultrasonicSensor = EV3UltrasonicSensor(SensorPort.S3)
+    var ultrasonicSensor = EV3UltrasonicSensor(SensorPort.S1)
 
     var wheelRight = WheeledChassis.modelWheel(tractionMotorRight, 35.0).offset(172.5)
     var wheelLeft = WheeledChassis.modelWheel(tractionMotorLeft, 35.0).offset(-172.5)
