@@ -1,7 +1,8 @@
 package com.angrynerds.ev3.debug
 
 import com.angrynerds.ev3.core.FeederRobot
-import com.angrynerds.ev3.extensions.measureDistance
+import com.angrynerds.ev3.extensions.getDistance
+import com.angrynerds.ev3.extensions.getHtmlColor
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
@@ -16,10 +17,10 @@ class SensorDebugger : HttpHandler {
                 "<script type=\"text/javascript\"> var timeout; \$(document).ready(function () { startReload(); }); function stopReload() { clearTimeout(timeout); } function startReload() { timeout = setTimeout(function() { window.location.reload(); }, 2000); } </script></head>"
         val response = autoRefreshScript +
                 "<body>" +
-                "<b>Infrared:</b> ${FeederRobot.infraredSensor.measureDistance()}<br/>" +
-                "<b>Ultrasonic:</b> ${FeederRobot.ultrasonicSensor.measureDistance()}<br/>" +
-                "<b>Right Color:</b> ${FeederRobot.colorSensorRight.sampleSize()}<br/>" +
-                "<b>Forward Color:</b> ${FeederRobot.colorSensorForward.sampleSize()}" +
+                "<b>Infrared:</b> ${FeederRobot.infraredSensor.getDistance()}<br/>" +
+                "<b>Ultrasonic:</b> ${FeederRobot.ultrasonicSensor.getDistance()}<br/>" +
+                "<b style=\"color:${FeederRobot.colorSensorRight.getHtmlColor()}\">Right Color: </b>${FeederRobot.colorSensorRight.colorID} <br/>" +
+                "<b style=\"color:${FeederRobot.colorSensorForward.getHtmlColor()}\">Forward Color: </b>${FeederRobot.colorSensorForward.colorID}" +
                 "<br /><button onclick=\"stopReload();\">Stop auto refresh!</button>" +
                 "<button onclick=\"startReload();\">Start auto refresh!</button>" +
                 "</body></html>"

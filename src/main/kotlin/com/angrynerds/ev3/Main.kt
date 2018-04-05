@@ -2,7 +2,7 @@ package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.debug.SensorDebugger
-import com.angrynerds.ev3.extensions.measureDistance
+import com.angrynerds.ev3.extensions.getDistance
 import io.reactivex.Observable
 import lejos.hardware.Button
 import lejos.hardware.Sound
@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
     movePilot.forward()
 
     for (i in 1..10) {
-        val infraredSensor = FeederRobot.infraredSensor.measureDistance()
+        val infraredSensor = FeederRobot.infraredSensor.getDistance()
         print("Found: " + (infraredSensor > 30.0))
         if (infraredSensor > 49.0 && movePilot.isMoving) {
             movePilot.stop()
@@ -44,10 +44,10 @@ fun myTest() {
     Button.waitForAnyPress()
 
     FeederRobot.movePilot.rotateRight()
-    FeederRobot.ultrasonicSensor.measureDistance()
+    FeederRobot.ultrasonicSensor.getDistance()
 
     val distanceObservable = Observable.interval(40L, TimeUnit.MILLISECONDS)
-            .map { FeederRobot.ultrasonicSensor.measureDistance() }
+            .map { FeederRobot.ultrasonicSensor.getDistance() }
 
     distanceObservable.subscribe(::println)
 
