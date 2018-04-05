@@ -1,5 +1,6 @@
 package com.angrynerds.ev3.core
 
+import lejos.hardware.Device
 import lejos.hardware.motor.Motor
 import lejos.hardware.port.SensorPort
 import lejos.hardware.sensor.EV3ColorSensor
@@ -22,4 +23,10 @@ object FeederRobot {
     var wheelLeft = WheeledChassis.modelWheel(tractionMotorLeft, 35.0).offset(-172.5)
     var chassis = WheeledChassis(arrayOf(wheelRight, wheelLeft), WheeledChassis.TYPE_DIFFERENTIAL)
     var movePilot = MovePilot(chassis)
+
+    fun close(){
+        val devices = arrayOf(tractionMotorRight, tractionMotorLeft, grabMotor,
+                infraredSensor, colorSensorRight, colorSensorForward, ultrasonicSensor)
+        devices.forEach(Device::close)
+    }
 }
