@@ -14,16 +14,7 @@ object FeederRobot {
     var tractionMotorLeft = Motor.A
     var grabMotor = Motor.C
 
-    fun getInfraredSensor(): Float {
-        val sensor = EV3IRSensor(SensorPort.S1)
-        val distance = sensor.distanceMode
-        val sample = FloatArray(distance.sampleSize())
-        println(sample.joinToString(";"))       //TODO change to Log.debug
-        distance.fetchSample(sample, 0)
-        sensor.close()
-        return sample[0]
-    }
-
+    var infraredSensor = EV3IRSensor(SensorPort.S1)
     var colorSensorRight = EV3ColorSensor(SensorPort.S2)
     var colorSensorForward = EV3ColorSensor(SensorPort.S4)
     var ultrasonicSensor = EV3UltrasonicSensor(SensorPort.S3)
