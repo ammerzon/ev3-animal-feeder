@@ -10,7 +10,7 @@ import kotlin.concurrent.thread
 class SensorDebugger : HttpHandler {
     override fun handle(exchange: HttpExchange?) {
         val response = "<html>" +
-                "<b>Infrared:</b> ${FeederRobot.getInfraredSensor()}<br/>" +
+                "<b>Infrared:</b> ${FeederRobot.infraredSensor.sampleSize()}<br/>" +
                 "<b>Ultrasonic:</b> ${FeederRobot.ultrasonicSensor.sampleSize()}<br/>" +
                 "<b>Right Color:</b> ${FeederRobot.colorSensorRight.sampleSize()}<br/>" +
                 "<b>Forward Color:</b> ${FeederRobot.colorSensorForward.sampleSize()}" +
