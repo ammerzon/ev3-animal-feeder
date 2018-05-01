@@ -1,21 +1,7 @@
 package com.angrynerds.ev3.extensions
 
 import lejos.hardware.sensor.EV3ColorSensor
-import lejos.hardware.sensor.EV3IRSensor
-import lejos.hardware.sensor.EV3UltrasonicSensor
 import lejos.robotics.Color
-
-fun EV3IRSensor.getDistance(): Float {
-    val distanceSample = floatArrayOf(0f)
-    distanceMode.fetchSample(distanceSample, 0)
-    return distanceSample[0]
-}
-
-fun EV3UltrasonicSensor.getDistance(): Float {
-    val distanceSample = floatArrayOf(0f)
-    distanceMode.fetchSample(distanceSample, 0)
-    return distanceSample[0]
-}
 
 fun EV3ColorSensor.getColor(): java.awt.Color? {
     when (colorID) {
