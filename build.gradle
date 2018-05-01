@@ -26,8 +26,14 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 
+// TODO remove resolution strategy when a final version of RXLeJOS is released
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "com.github.ammerzon:RxLeJOS:-SNAPSHOT"
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.10'
     compile group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: '2.2.0'
