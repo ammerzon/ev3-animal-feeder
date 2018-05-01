@@ -1,84 +1,56 @@
 package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.FeederRobot
-import com.angrynerds.ev3.core.RxFeederRobot
-import com.angrynerds.ev3.extensions.getColorString
-import io.reactivex.disposables.Disposable
+import com.angrynerds.ev3.debug.SensorDebugger
+import com.angrynerds.ev3.extensions.getDistance
+import io.reactivex.Observable
+import lejos.hardware.Button
 import lejos.hardware.Sound
-import lejos.robotics.Color
+import lejos.robotics.chassis.Wheel
+import lejos.robotics.chassis.WheeledChassis
+import lejos.robotics.navigation.MovePilot
+import java.util.concurrent.TimeUnit
 
-val MIN_DISTANCE = 10F
-val SPEED = 35.0
-
-val roboter = FeederRobot.movePilot
-
-val infraredObservable = RxFeederRobot.infraredSensor.distance          // precipice recognition
-val ultrasonicObservable = RxFeederRobot.ultrasonicSensor.distance      // obstacles recognition
-val colorForwardObservable = RxFeederRobot.colorSensorForward.color     // food recognition
-val colorRightObservable = RxFeederRobot.colorSensorRight.color         // enclosure recognition
-
-lateinit var scanSubscriber: Disposable
 
 fun main(args: Array<String>) {
-    init()
-    scanColor()
-}
+    Sound.DOUBLE_BEEP
 
-private fun startCompetition(foodColor: Color) {
-    scanSubscriber.dispose()
+    SensorDebugger.startDebugServer()
 
-    // initial move
-    FeederRobot.movePilot.forward()
+    val wheelLeft = WheeledChassis.modelWheel(FeederRobot.tractionMotorLeft, 30.0).offset(70.0)
+    val wheelRight = WheeledChassis.modelWheel(FeederRobot.tractionMotorRight, 30.0).offset(-70.0)
+    val chassis = WheeledChassis(arrayOf<Wheel>(wheelLeft, wheelRight), WheeledChassis.TYPE_DIFFERENTIAL)
+    val movePilot = MovePilot(chassis)
+    movePilot.linearSpeed = 35.0
+    movePilot.forward()
 
-    infraredObservable.subscribe { distance ->
-        if (distance <= MIN_DISTANCE) {
-            Sound.twoBeeps()
-            log("!! precipice recognized !!")
-
-            roboter.stop()
-            //TODO move a bit backward
-            roboter.rotate(180.0)
+    for (i in 1..10) {
+        val infraredSensor = FeederRobot.infraredSensor.getDistance()
+        print("Found: " + (infraredSensor > 30.0))
+        if (infraredSensor > 49.0 && movePilot.isMoving) {
+            movePilot.stop()
+        } else if (infraredSensor <= 49.0 && !movePilot.isMoving) {
+            movePilot.forward()
         }
+        Thread.sleep(2000)
     }
 
-    ultrasonicObservable.subscribe { distance ->
-        roboter.stop()
-        Sound.beep()
-        log("obstacle recognized")
-
-        val forwardColor: Color = colorForwardObservable.blockingFirst()
-        if (forwardColor.equals(foodColor)) {
-            log("Food recognized (distance=$distance,color=${forwardColor.getColorString()})")
-            //TODO close arms and move backwards and bring it back
-        } else {
-            log("No food recognized (distance=$distance,color=${forwardColor.getColorString()})")
-            //TODO ignore and move backwards
-        }
-    }
-
-    colorForwardObservable.subscribe { color ->
-        log("Color forward recognized: " + color.getColorString())
-    }
-
-    colorRightObservable.subscribe { color ->
-        log("Color right recognized: " + color.getColorString())
-    }
+    FeederRobot.tractionMotorLeft.close()
+    FeederRobot.tractionMotorRight.close()
+    Button.waitForAnyPress()
 }
 
-fun init() {
-    FeederRobot.movePilot.linearSpeed = SPEED
-}
+fun myTest() {
+    Button.waitForAnyPress()
 
-fun log(message: String) {
-    println(message)
-    TODO("change to log4j")
-}
+    FeederRobot.movePilot.rotateRight()
+    FeederRobot.ultrasonicSensor.getDistance()
 
-fun scanColor() {
-    scanSubscriber = colorForwardObservable.subscribe { color ->
-        Sound.beep()
-        log("Color scanned: ${color.getColorString()}")
+    val distanceObservable = Observable.interval(40L, TimeUnit.MILLISECONDS)
+            .map { FeederRobot.ultrasonicSensor.getDistance() }
 
-        startCompetition(color)
-    }
+    distanceObservable.subscribe(::println)
+
+    FeederRobot.close()
+
 }
