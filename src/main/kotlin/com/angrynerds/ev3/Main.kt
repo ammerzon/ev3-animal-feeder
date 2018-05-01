@@ -1,56 +1,73 @@
 package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.FeederRobot
-import com.angrynerds.ev3.debug.SensorDebugger
 import com.angrynerds.ev3.extensions.getDistance
 import io.reactivex.Observable
 import lejos.hardware.Button
-import lejos.hardware.Sound
-import lejos.robotics.chassis.Wheel
-import lejos.robotics.chassis.WheeledChassis
-import lejos.robotics.navigation.MovePilot
-import java.util.concurrent.TimeUnit
+import lejos.sensors.RxEV3ColorSensor
+import lejos.sensors.RxEV3IRSensor
+import lejos.sensors.RxEV3UltrasonicSensor
 
+const val OBSTACLE_MAX_DISTANCE = 35
+const val GRABBER_MAX_ROTATION = 15000
+const val ULTRASONIC_TABLE_DISTANCE = 0.031000002
+const val GRABBER_UPWARD_SPEED = 360
+const val GRABBER_DOWNWARD_SPEED = 180
 
 fun main(args: Array<String>) {
-    Sound.DOUBLE_BEEP
 
-    SensorDebugger.startDebugServer()
-
-    val wheelLeft = WheeledChassis.modelWheel(FeederRobot.tractionMotorLeft, 30.0).offset(70.0)
-    val wheelRight = WheeledChassis.modelWheel(FeederRobot.tractionMotorRight, 30.0).offset(-70.0)
-    val chassis = WheeledChassis(arrayOf<Wheel>(wheelLeft, wheelRight), WheeledChassis.TYPE_DIFFERENTIAL)
-    val movePilot = MovePilot(chassis)
-    movePilot.linearSpeed = 35.0
-    movePilot.forward()
-
-    for (i in 1..10) {
-        val infraredSensor = FeederRobot.infraredSensor.getDistance()
-        print("Found: " + (infraredSensor > 30.0))
-        if (infraredSensor > 49.0 && movePilot.isMoving) {
-            movePilot.stop()
-        } else if (infraredSensor <= 49.0 && !movePilot.isMoving) {
-            movePilot.forward()
-        }
-        Thread.sleep(2000)
-    }
-
-    FeederRobot.tractionMotorLeft.close()
-    FeederRobot.tractionMotorRight.close()
+    println("Initialize robot ...")
+    FeederRobot.infraredSensor
+    resetToStartPosition()
+    println("Press a button to continue ...")
     Button.waitForAnyPress()
+
+    RxEV3ColorSensor(FeederRobot.colorSensorForward).colorId.subscribe({ println("Color forward: " + it.id) })
+    RxEV3ColorSensor(FeederRobot.colorSensorRight).colorId.subscribe({ println("Color right: " + it.id) })
+    RxEV3IRSensor(FeederRobot.infraredSensor).distance.subscribe({ println("IR: " + it) })
+    RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor).distance.subscribe({ println("US: " + it) })
+    Button.waitForAnyPress()
+
+    //SensorDebugger.startDebugServer()
+    raiseGrabber()
+    testAvoidThings()
+
+    Button.waitForAnyPress()
+    FeederRobot.close()
 }
 
-fun myTest() {
-    Button.waitForAnyPress()
+fun testAvoidThings() {
+    FeederRobot.movePilot.linearSpeed = 35.0
+    FeederRobot.movePilot.forward()
+    obstacles().subscribe { x -> onObstacle(x) }
+}
 
-    FeederRobot.movePilot.rotateRight()
-    FeederRobot.ultrasonicSensor.getDistance()
+fun onObstacle(obstacleDistance: Float) {
 
-    val distanceObservable = Observable.interval(40L, TimeUnit.MILLISECONDS)
-            .map { FeederRobot.ultrasonicSensor.getDistance() }
+    if (FeederRobot.infraredSensor.getDistance() > OBSTACLE_MAX_DISTANCE)
+        return
 
-    distanceObservable.subscribe(::println)
+    dodgeObstacle()
+}
 
-    FeederRobot.close()
+fun dodgeObstacle() {
+    FeederRobot.movePilot.rotate(20.0)
+    FeederRobot.movePilot.forward()
+}
 
+fun obstacles(): Observable<Float> {
+    return RxEV3IRSensor(FeederRobot.infraredSensor).distance
+            .filter { distance -> distance <= OBSTACLE_MAX_DISTANCE }
+}
+
+fun raiseGrabber() {
+    FeederRobot.grabMotor.speed = GRABBER_UPWARD_SPEED
+    FeederRobot.grabMotor.rotate(GRABBER_MAX_ROTATION - FeederRobot.grabberPositionAsAngle)
+    FeederRobot.grabberPositionAsAngle = GRABBER_MAX_ROTATION
+}
+
+fun resetToStartPosition() {
+    FeederRobot.grabMotor.speed = GRABBER_DOWNWARD_SPEED
+    RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor, false).distance.filter({ it < ULTRASONIC_TABLE_DISTANCE }).take(1).subscribe({ FeederRobot.grabMotor.stop() })
+    FeederRobot.grabMotor.backward()
 }
