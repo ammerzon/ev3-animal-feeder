@@ -5,8 +5,8 @@ import lejos.sensors.RxEV3IRSensor
 import lejos.sensors.RxEV3UltrasonicSensor
 
 object RxFeederRobot {
-    var infraredSensor = RxEV3IRSensor(Ports.infraredSensor, false)
-    var colorSensorRight = RxEV3ColorSensor(Ports.colorSensorRight, false)
-    var colorSensorForward = RxEV3ColorSensor(Ports.colorSensorForward, false)
-    var ultrasonicSensor = RxEV3UltrasonicSensor(Ports.ultrasonicSensor, false)
+    var rxInfraredSensor = RxEV3IRSensor(FeederRobot.infraredSensor, false)
+    var rxColorSensorRight = RxEV3ColorSensor(FeederRobot.colorSensorRight, false)
+    var rxColorSensorForward = RxEV3ColorSensor(FeederRobot.colorSensorForward, false)
+    var rxUltrasonicSensor = RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor, false)
 }

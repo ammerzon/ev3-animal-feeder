@@ -15,14 +15,14 @@ import lejos.robotics.chassis.WheeledChassis
 import lejos.robotics.navigation.MovePilot
 
 object FeederRobot {
-    var tractionMotorRight = EV3LargeRegulatedMotor(MotorPort.D)
-    var tractionMotorLeft = EV3LargeRegulatedMotor(MotorPort.A)
-    var grabMotor = EV3MediumRegulatedMotor(MotorPort.C)
+    var tractionMotorRight = EV3LargeRegulatedMotor(Ports.tractionMotorRight)
+    var tractionMotorLeft = EV3LargeRegulatedMotor(Ports.tractionMotorLeft)
+    var grabMotor = EV3MediumRegulatedMotor(Ports.grabMotor)
 
-    var infraredSensor = EV3IRSensor(SensorPort.S2)
-    var colorSensorRight = EV3ColorSensor(SensorPort.S4)
-    var colorSensorForward = EV3ColorSensor(SensorPort.S1)
-    var ultrasonicSensor = EV3UltrasonicSensor(SensorPort.S3)
+    var infraredSensor = EV3IRSensor(Ports.infraredSensor)
+    var colorSensorRight = EV3ColorSensor(Ports.tractionMotorRight)
+    var colorSensorForward = EV3ColorSensor(Ports.colorSensorForward)
+    var ultrasonicSensor = EV3UltrasonicSensor(Ports.ultrasonicSensor)
 
     var wheelRight = WheeledChassis.modelWheel(tractionMotorRight, 35.0).offset(172.5)
     var wheelLeft = WheeledChassis.modelWheel(tractionMotorLeft, 35.0).offset(-172.5)
