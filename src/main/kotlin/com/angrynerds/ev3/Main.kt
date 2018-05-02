@@ -31,10 +31,7 @@ fun main(args: Array<String>) {
     println("Press a button to continue ...")
     Button.waitForAnyPress()
 
-    RxEV3ColorSensor(FeederRobot.colorSensorForward).colorId.subscribe({ println("Color forward: " + it.id) })
-    RxEV3ColorSensor(FeederRobot.colorSensorRight).colorId.subscribe({ println("Color right: " + it.id) })
-    RxEV3IRSensor(FeederRobot.infraredSensor).distance.subscribe({ println("IR: " + it) })
-    RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor).distance.subscribe({ println("US: " + it) })
+    initLogging()
     Button.waitForAnyPress()
 
     //SensorDebugger.startDebugServer()
@@ -51,6 +48,13 @@ fun main(args: Array<String>) {
 
     Button.waitForAnyPress()
     FeederRobot.close()
+}
+
+fun initLogging() {
+    RxFeederRobot.rxColorSensorForward.colorId.subscribe({ println("Color forward: " + it) })
+    RxFeederRobot.rxColorSensorRight.colorId.subscribe({ println("Color right: " + it) })
+    RxFeederRobot.rxInfraredSensor.distance.subscribe({ println("IR: " + it) })
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe({ println("US: " + it) })
 }
 
 fun testAvoidEnclosure() {
