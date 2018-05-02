@@ -5,6 +5,7 @@ import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.extensions.getDistance
 import io.reactivex.Observable
 import lejos.hardware.Button
+import lejos.sensors.ColorId
 import lejos.sensors.RxEV3ColorSensor
 import lejos.sensors.RxEV3IRSensor
 import lejos.sensors.RxEV3UltrasonicSensor
@@ -12,19 +13,20 @@ import lejos.sensors.RxEV3UltrasonicSensor
 const val OBSTACLE_MAX_DISTANCE = 35
 const val GRABBER_MAX_ROTATION = 15000
 const val ULTRASONIC_LOW_TABLE_DISTANCE = 0.031000002
-const val ULTRASONIC_HIGH_TABLE_DISTANCE = 0.05
-const val GRABBER_UPWARD_SPEED = 360
-const val GRABBER_DOWNWARD_SPEED = 180
+const val ULTRASONIC_HIGH_TABLE_DISTANCE = 0.2
+const val GRABBER_UPWARD_SPEED = 400
+const val GRABBER_DOWNWARD_SPEED = 200
 const val FORWARD_SPEED = 35.0
 
 var isUltrasonicRaised = false
+var foodColor = ColorId.YELLOW
 
 fun main(args: Array<String>) {
 
 
     println("Initialize robot ...")
     FeederRobot.tractionMotorLeft
-    RxFeederRobot.colorSensorForward
+    RxFeederRobot.rxColorSensorForward
     resetToStartPosition()
     println("Press a button to continue ...")
     Button.waitForAnyPress()
@@ -38,23 +40,27 @@ fun main(args: Array<String>) {
     //SensorDebugger.startDebugServer()
 
     // Avoid things
-    /*raiseGrabber()
-    testAvoidThings()*/
+    raiseGrabber()
+    testAvoidThings()
 
-    // Detect enclosure
+    // Avoid enclosure
     testAvoidEnclosure()
-    
+
+    // Raise stone
+    testRaiseStone()
+
     Button.waitForAnyPress()
     FeederRobot.close()
 }
 
 fun testAvoidEnclosure() {
+    print("Started testAvoidEnclosure")
     FeederRobot.movePilot.linearSpeed = FORWARD_SPEED
     FeederRobot.movePilot.forward()
-    RxFeederRobot.ultrasonicSensor.distance.subscribe { distance ->
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
         if ((isUltrasonicRaised && distance > ULTRASONIC_HIGH_TABLE_DISTANCE) || (!isUltrasonicRaised && distance > ULTRASONIC_LOW_TABLE_DISTANCE)) {
             FeederRobot.movePilot.stop()
-            FeederRobot.movePilot.travel(-10.0)
+            FeederRobot.movePilot.travel(-100.0)
             FeederRobot.movePilot.rotate(180.0)
         }
         Thread.sleep(2000)
@@ -66,6 +72,7 @@ fun testAvoidEnclosure() {
 }
 
 fun testAvoidThings() {
+    print("Started testAvoidThings")
     FeederRobot.movePilot.linearSpeed = FORWARD_SPEED
     FeederRobot.movePilot.forward()
     obstacles().subscribe { x -> onObstacle(x) }
@@ -98,7 +105,20 @@ fun raiseGrabber() {
 
 fun resetToStartPosition() {
     FeederRobot.grabMotor.speed = GRABBER_DOWNWARD_SPEED
-    RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor, false).distance.filter({ it < ULTRASONIC_LOW_TABLE_DISTANCE }).take(1).subscribe({ FeederRobot.grabMotor.stop() })
     FeederRobot.grabMotor.backward()
+    RxEV3UltrasonicSensor(FeederRobot.ultrasonicSensor, false).distance.filter({ it < ULTRASONIC_LOW_TABLE_DISTANCE }).take(1).subscribe({ FeederRobot.grabMotor.stop() })
     isUltrasonicRaised = false
+}
+
+fun testRaiseStone() {
+    print("Started testRaiseStone")
+    Button.waitForAnyPress()
+    val forwardColorId = RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
+    if (forwardColorId.equals(foodColor)) {
+        println("Food recognized color=${forwardColorId.name}")
+        raiseGrabber()
+    } else {
+        println("No food recognized color=${forwardColorId.name}")
+        FeederRobot.movePilot.travel(-50.0)
+    }
 }
