@@ -25,9 +25,13 @@ The robot should at least have the following features
 ![](assets/arena_front_view.png)
 
 ## ☑️ TODO
-- [ ] Use [RxJava](https://github.com/ReactiveX/RxJava) like [rx-mindstorm](https://github.com/bdeneuter/rx-mindstorms)?
+- [x] Use [RxJava](https://github.com/ReactiveX/RxJava) like [rx-mindstorm](https://github.com/bdeneuter/rx-mindstorms)?
 - [ ] Implement centralized logging
 - [ ] Add Proguard to shrink the jar file
+
+## 🚧 Fixes 
+### Cannot instantiate NXTColorSensor
+Download the following file (https://goo.gl/HbmrX4) and replace the existing ev3classes.jar (https://goo.gl/yrVpFy).
 
 ## ⚙️ Status
 
