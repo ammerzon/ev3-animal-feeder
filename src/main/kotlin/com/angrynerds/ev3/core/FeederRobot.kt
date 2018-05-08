@@ -20,7 +20,7 @@ object FeederRobot {
     var grabMotor = EV3MediumRegulatedMotor(Ports.grabMotor)
 
     var infraredSensor = EV3IRSensor(Ports.infraredSensor)
-    var colorSensorRight = EV3ColorSensor(Ports.tractionMotorRight)
+    var colorSensorRight = EV3ColorSensor(Ports.colorSensorRight)
     var colorSensorForward = EV3ColorSensor(Ports.colorSensorForward)
     var ultrasonicSensor = EV3UltrasonicSensor(Ports.ultrasonicSensor)
 

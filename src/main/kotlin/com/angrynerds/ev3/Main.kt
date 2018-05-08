@@ -72,7 +72,6 @@ fun testAvoidEnclosure() {
             FeederRobot.movePilot.forward()
         }
     }
-
 }
 
 fun testAvoidThings() {
