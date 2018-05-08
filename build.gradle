@@ -55,3 +55,29 @@ compileTestKotlin {
 mindstorms {
     main = 'com.angrynerds.ev3.MainKt'
 }
+
+project.task(dependsOn: 'copyToRobot', group: 'mindstorms', 'launch2') {
+
+    doLast {
+        ant.lifecycleLogLevel = AntBuilder.AntMessagePriority.INFO
+
+        ant.taskdef(
+                name: 'sshexec',
+                classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
+                classpath: configurations.scp.asPath)
+
+        File file = new File(buildDir, 'libs')
+                .listFiles()
+                .find { it.name.endsWith '.jar' }
+        String application = "${project.mindstorms.home}/" + file.getName()
+
+        ant.sshexec(
+                username: "${project.mindstorms.user}",
+                password: "${project.mindstorms.password}",
+                host: "${project.mindstorms.ip}",
+                command: "jrun -cp $application ${project.mindstorms.main}",
+                trust: true
+        )
+    }
+
+}
