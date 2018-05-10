@@ -26,8 +26,8 @@ The robot should at least have the following features
 
 ## ☑️ TODO
 - [x] Use [RxJava](https://github.com/ReactiveX/RxJava) like [rx-mindstorm](https://github.com/bdeneuter/rx-mindstorms)?
-- [ ] Implement centralized logging
 - [ ] Add Proguard to shrink the jar file
+- [ ] Add activity diagram
 
 ## 🚧 Fixes 
 ### Cannot instantiate NXTColorSensor
@@ -36,6 +36,7 @@ Download the following file (https://goo.gl/HbmrX4) and replace the existing ev3
 ## ⚙️ Status
 
 [![Build Status](https://travis-ci.com/ammerzon/ev3-animal-feeder.svg?token=4Kip5GQScgZEa2GStX8U&branch=master)](https://travis-ci.com/ammerzon/ev3-animal-feeder)
+[![Dependency Status](https://www.versioneye.com/user/projects/5a5f44130fb24f002f358808/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5a5f44130fb24f002f358808)
 
 ## 📃 License
 
