@@ -1,16 +1,19 @@
 package com.angrynerds.ev3.core
 
-import lejos.hardware.motor.Motor
 import lejos.hardware.port.MotorPort
 import lejos.hardware.port.SensorPort
 
 object Ports {
-    var tractionMotorRight = MotorPort.D
+    //region Motors
     var tractionMotorLeft = MotorPort.A
     var grabMotor = MotorPort.C
+    var tractionMotorRight = MotorPort.D
+    //endregion
 
-    val infraredSensor = SensorPort.S2
-    val colorSensorRight = SensorPort.S4
+    //region Sensors
     val colorSensorForward = SensorPort.S1
+    val infraredSensor = SensorPort.S2
     val ultrasonicSensor = SensorPort.S3
+    val colorSensorRight = SensorPort.S4
+    //endregion
 }
