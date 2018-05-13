@@ -9,6 +9,9 @@ import com.sun.net.httpserver.HttpServer
 import java.net.InetSocketAddress
 import kotlin.concurrent.thread
 
+/**
+ * This class starts a web server on port 8081 to display the current sensor values.
+ */
 class SensorDebugger : HttpHandler {
     override fun handle(exchange: HttpExchange?) {
         val autoRefreshScript = "<html>" +
