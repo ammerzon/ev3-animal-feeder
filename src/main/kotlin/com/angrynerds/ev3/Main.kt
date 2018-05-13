@@ -2,7 +2,12 @@ package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.RxFeederRobot
+import com.angrynerds.ev3.enums.GrapplerPosition
+import com.angrynerds.ev3.enums.Obstacle
+import com.angrynerds.ev3.extensions.getDistance
+import com.angrynerds.ev3.util.*
 import lejos.hardware.Button
+import lejos.sensors.ColorId
 import java.util.logging.Logger
 
 val logger = Logger.getLogger("main")!!
@@ -32,6 +37,7 @@ fun resetToInitialState() {
 
 fun calibrateRobot() {
     logger.info("Robot calibration started")
+    Config.init(FeederRobot.animalType)
     TODO("not implemented")
     logger.info("Animal type: " + FeederRobot.animalType)
 }
@@ -89,7 +95,25 @@ fun test05FindStable() {
  * Baum befindet sich sich ca. 20 cm vor Roboter. Dieser erkennt Baum und schmeißt ihn um.
  */
 fun test06CutTree() {
-    TODO("not implemented")
+    val treeMinDistance = 100 // TODO: configure
+    fun isTreeAhead() : Boolean {
+        return FeederRobot.infraredSensor.getDistance() < treeMinDistance
+    }
+    fun cutTree() {
+        // Move grappler to middle position
+        moveGrapplerTo(GrapplerPosition.MIDDLE)
+
+        val overturnDistance = 10.0 // distance which should force tree to tilt. TODO: configure
+        val grapplerLength = 50.0
+        val treeDistance = FeederRobot.infraredSensor.getDistance() - grapplerLength
+        val travelDistance = treeDistance + overturnDistance
+        FeederRobot.movePilot.travel(travelDistance, true)
+        // TODO: not sure, if immediate return has the desired effect
+    }
+
+    // Note that color should be checked for real detection
+    if(isTreeAhead())
+        cutTree();
 }
 
 /**
@@ -111,6 +135,36 @@ fun test08ObstacleDetection() {
  */
 fun test09MeasureHeight() {
     TODO("not implemented")
+}
+
+/**
+ * Move grappler to a specific height.
+ */
+fun moveGrapplerTo(pos : GrapplerPosition) {
+    val delta = FeederRobot.grapplerPosition.rotations - pos.rotations
+
+    FeederRobot.grabMotor.speed = if (delta > 0)
+        Constants.Grabber.UPWARD_SPEED
+    else Constants.Grabber.UPWARD_SPEED
+    FeederRobot.grabMotor.rotate(delta.toInt())
+
+    FeederRobot.grapplerPosition = pos
+}
+
+fun getPossibleObstacles(color : ColorId, height : Double = 0.0) : Array<Obstacle> {
+    var possibleObstacles = arrayOf<Obstacle>()
+    if (isFenceColor(color.id))
+        possibleObstacles += Obstacle.FENCE
+    if (isTreeColor(color.id))
+        possibleObstacles += Obstacle.TREE
+    if (isAnimalColor(color.id))
+        possibleObstacles += Obstacle.ANIMAL
+    if (isMyFeedColor(color.id))
+        possibleObstacles += Obstacle.FEED
+    if (isOpponentFeedColor(color.id))
+        possibleObstacles += Obstacle.FEED_OPPONENT
+
+    return possibleObstacles
 }
 
 /*fun testAvoidEnclosure() {
