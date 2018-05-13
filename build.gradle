@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id "com.github.bdeneuter.mindstorms.ev3" version "1.2.2"
+    id "com.github.bdeneuter.mindstorms.ev3" version "1.2.3"
 }
 
 group 'com.angrynerds.ev3'
