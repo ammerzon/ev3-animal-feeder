@@ -20,6 +20,10 @@ fun isOpponentFeedColor(colorId: Int): Boolean {
     return colorId == Config.opponentFeedColor.id
 }
 
+fun isStable(colorId: Int): Boolean {
+    return colorId == Config.stableColor.id
+}
+
 fun isFence(distance: Float): Boolean {
     return distance <= Constants.ObstacleCheck.FENCE_HEIGHT && distance > Constants.ObstacleCheck.FEED_HEIGHT
 }

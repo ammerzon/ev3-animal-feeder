@@ -26,13 +26,19 @@ object Constants {
         // colors of the other animals placed in the arena (e. g. tiger, ...)
         val ANIMAL_COLORS = arrayOf(ColorId.BLACK, ColorId.WHITE, ColorId.BLUE, ColorId.RED, ColorId.WHITE)
         // height of feed
-        const val FEED_HEIGHT = 1    // TODO: Configure
+        val FEED_HEIGHT = 1    // TODO: Configure
         // height of fence
         val FENCE_HEIGHT = 1.5      // TODO: Configure
+        // distance of obstacles to be recognized
+        val MIN_OBSTACLE_DISTANCE = 15
+        // rotation angle of robot after an obstacle was detected
+        val ROTATION_ANGLE = PrecipiceDetection.ROTATION_ANGLE + 30
     }
 
     object StableDetection {
         val ULTRASONIC_THRESHOLD = 10
+        val WINNIE_POOH_STABLE_COLOR = ColorId.YELLOW // TODO: configure
+        val I_AAH_FEED_COLOR = ColorId.RED // TODO: configure
     }
 
     object DemolishFence {

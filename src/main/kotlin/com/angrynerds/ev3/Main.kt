@@ -151,7 +151,21 @@ fun test04CarryStone() {
  * Roboter fährt (mit gehobenen/geschlossenen) Greifarm auf kalkulierte Richtung des Geheges zu.
  */
 fun test05FindStable() {
-    TODO("not implemented")
+    RxFeederRobot.rxInfraredSensor.distance.subscribe { irDist ->
+        if (irDist.isFinite() && irDist <= Constants.ObstacleCheck.MIN_OBSTACLE_DISTANCE) {
+            if (!isStable(FeederRobot.colorSensorForward.colorID)) {
+                stopRobot()
+                moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+                rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
+                moveRobot()
+            } else {
+                stopRobot()
+            }
+        }
+    }
+
+    moveGrapplerTo(GrapplerPosition.TOP)
+    moveRobot()
 }
 
 /**
