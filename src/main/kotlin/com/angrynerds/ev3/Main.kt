@@ -7,12 +7,10 @@ import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.enums.Sound.CRACK_KID
 import com.angrynerds.ev3.enums.Sound.ERROR
 import com.angrynerds.ev3.extensions.getDistance
-import com.angrynerds.ev3.extensions.readColor
 import com.angrynerds.ev3.util.*
 import lejos.hardware.Button
 import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
-import lejos.robotics.Color
 import lejos.sensors.ColorId
 import lejos.utility.TextMenu
 import java.io.File
@@ -99,12 +97,12 @@ fun test01PrecepiceDetection() {
  */
 fun test02ObstacleStop() {
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
-        if (distance <= Constants.ObstacleCheck.ULTRASONIC_THRESHOLD) {
-            FeederRobot.movePilot.stop()
+        if (isFeed(distance)) {
+            stopRobot()
         }
     }
 
-    FeederRobot.movePilot.forward()
+    moveRobot()
 }
 
 /**
@@ -163,7 +161,25 @@ fun test06CutTree() {
  * Roboter befindet sich in der Arena und stößt Zaun weg.
  */
 fun test07DemolishFence() {
-    TODO("not implemented")
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        if (isFence(distance)) {
+            stopRobot()
+            moveGrapplerTo(GrapplerPosition.MIDDLE)
+            FeederRobot.movePilot.travel(5.0)
+        }
+    }
+
+    moveRobot()
+}
+
+private fun moveRobot() {
+    FeederRobot.movePilot.forward()
+    println("robot moved forward")
+}
+
+private fun stopRobot() {
+    FeederRobot.movePilot.stop()
+    println("robot stopped")
 }
 
 /**
