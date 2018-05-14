@@ -190,13 +190,13 @@ fun test06CutTree() {
     Button.waitForAnyPress()
 
     // Move up, so distance can be measured
-    moveGrapplerTo(GrapplerPosition.TOP)
+    //moveGrapplerTo(GrapplerPosition.TOP)
 
-    val treeMinDistance = 28 // TODO: configure
+    val treeMinDistance = 30 // TODO: configure
     fun isTreeAhead(): Boolean {
         // Move up, so distance can be measured
-        moveGrapplerTo(GrapplerPosition.TOP)
-
+        //moveGrapplerTo(GrapplerPosition.TOP)
+        return true
         return FeederRobot.infraredSensor.getDistance() < treeMinDistance
     }
 
@@ -204,11 +204,13 @@ fun test06CutTree() {
         // Move grappler to middle position
         moveGrapplerTo(GrapplerPosition.MIDDLE)
 
-        val overturnDistance = 3.0 // distance which should force tree to tilt. TODO: configure
+        val overturnDistance = 5.0 // distance which should force tree to tilt. TODO: configure
         val grapplerLength = 50.0
         val treeDistance = treeMinDistance //FeederRobot.infraredSensor.getDistance() - grapplerLength
-        val travelDistance = treeDistance + overturnDistance
-        moveRobot(travelDistance, true)
+        val travelDistance = 300.0
+
+        FeederRobot.movePilot.linearSpeed = 400.0
+        moveRobot(travelDistance, false)
         // TODO: not sure, if immediate return has the desired effect
     }
 
