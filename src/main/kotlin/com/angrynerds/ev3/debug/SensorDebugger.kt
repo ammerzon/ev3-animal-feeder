@@ -2,7 +2,7 @@ package com.angrynerds.ev3.debug
 
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.extensions.getDistance
-import com.angrynerds.ev3.extensions.getHtmlColor
+import com.angrynerds.ev3.extensions.htmlColor
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
@@ -22,8 +22,8 @@ class SensorDebugger : HttpHandler {
                 "<body>" +
                 "<b>Infrared:</b> ${FeederRobot.infraredSensor.getDistance()}<br/>" +
                 "<b>Ultrasonic:</b> ${FeederRobot.ultrasonicSensor.getDistance()}<br/>" +
-                "<b style=\"color:${FeederRobot.colorSensorRight.getHtmlColor()}\">Right Color: </b>${FeederRobot.colorSensorRight.colorID} <br/>" +
-                "<b style=\"color:${FeederRobot.colorSensorForward.getHtmlColor()}\">Forward Color: </b>${FeederRobot.colorSensorForward.colorID}" +
+                "<b style=\"color:${FeederRobot.colorSensorRight.htmlColor()}\">Right Color: </b>${FeederRobot.colorSensorRight.colorID} <br/>" +
+                "<b style=\"color:${FeederRobot.colorSensorForward.htmlColor()}\">Forward Color: </b>${FeederRobot.colorSensorForward.colorID}" +
                 "<br /><button onclick=\"stopReload();\">Stop auto refresh!</button>" +
                 "<button onclick=\"startReload();\">Start auto refresh!</button>" +
                 "</body></html>"

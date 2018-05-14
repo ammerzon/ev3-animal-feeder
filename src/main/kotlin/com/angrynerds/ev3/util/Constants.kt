@@ -12,6 +12,8 @@ object Constants {
         const val ULTRASONIC_THRESHOLD_GRABBER_UP = 0.2
         // vertical distance between the floor and the ultrasonic sensor when the grabber position is down
         const val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.031000002
+        const val ROTATION_ANGLE = 90.0
+        const val BACKWARD_TRAVEL_DISTANCE = -100.0
     }
 
     object ObstacleCheck {
@@ -23,8 +25,14 @@ object Constants {
         val I_AAH_FEED_COLOR = ColorId.GREEN
         // colors of the other animals placed in the arena (e. g. tiger, ...)
         val ANIMAL_COLORS = arrayOf(ColorId.BLACK, ColorId.WHITE, ColorId.BLUE, ColorId.RED, ColorId.WHITE)
-        // min distance before the robot should stop
-        const val ULTRASONIC_THRESHOLD = 5    // TODO: Configure
+        // height of feed
+        const val FEED_HEIGHT = 1    // TODO: Configure
+        // height of fence
+        val FENCE_HEIGHT = 1.5      // TODO: Configure
+    }
+
+    object StableDetection {
+        val ULTRASONIC_THRESHOLD = 10
     }
 
     object DemolishFence {
