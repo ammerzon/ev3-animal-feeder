@@ -174,6 +174,32 @@ fun test08ObstacleDetection() {
 }
 
 /**
+ * Danach werden verschiedene Farben vor den Farbsensor gehalten und bei einer Übereinstimmung zur eingelesenen Farbe wird ein Signal abgegeben.
+ */
+fun test09Calibration() {
+    var shouldQuit = false
+
+    println("Put reference color before the sensor and press a button...")
+    Button.waitForAnyPress()
+    val referenceColorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
+    println("Reference color: ${referenceColorId.name}")
+    do {
+        println("Place another color before the sensor and press a button (escape to quit)...")
+        if (Button.waitForAnyPress() != Button.ID_ESCAPE) {
+            val forwardColorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
+            if (referenceColorId == forwardColorId) {
+                Sound.playSample(File(CRACK_KID.fileName))
+            } else {
+                Sound.playSample(File(ERROR.fileName))
+            }
+            println("Detected color: ${forwardColorId.name}")
+        } else {
+            shouldQuit = true
+        }
+    } while (!shouldQuit)
+}
+
+/**
  * Der Roboter steht mit erhobenem Arm vor dem Gehege und fährt darauf zu. Wenn der Arm über dem Gehege ist soll es stoppen.
  */
 fun test10MeasureHeight() {
