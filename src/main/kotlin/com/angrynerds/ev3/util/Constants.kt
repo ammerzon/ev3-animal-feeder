@@ -7,13 +7,18 @@ object Constants {
         const val WAITING_TIME = 2
     }
 
+    object Reset {
+        val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.0..0.06
+    }
+
     object PrecipiceDetection {
         // vertical distance between the floor and the ultrasonic sensor when the grabber position is up
-        const val ULTRASONIC_THRESHOLD_GRABBER_UP = 0.2
+        val ULTRASONIC_THRESHOLD_GRABBER_UP = 0.19..0.21
         // vertical distance between the floor and the ultrasonic sensor when the grabber position is down
-        const val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.031000002
-        const val ROTATION_ANGLE = 90.0
-        const val BACKWARD_TRAVEL_DISTANCE = -100.0
+        val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.04..0.06
+        // should be 90 degress
+        const val ROTATION_ANGLE = 70.0
+        const val BACKWARD_TRAVEL_DISTANCE = -150.0
     }
 
     object ObstacleCheck {
@@ -26,9 +31,9 @@ object Constants {
         // colors of the other animals placed in the arena (e. g. tiger, ...)
         val ANIMAL_COLORS = arrayOf(ColorId.BLACK, ColorId.WHITE, ColorId.BLUE, ColorId.RED, ColorId.WHITE)
         // height of feed
-        val FEED_HEIGHT = 1    // TODO: Configure
-        // height of fence
-        val FENCE_HEIGHT = 1.5      // TODO: Configure
+        val FEED_HEIGHT = 0.048
+        // height of fence 0.03..0.04
+        val FENCE_HEIGHT = 0.03
         // distance of obstacles to be recognized
         val MIN_OBSTACLE_DISTANCE = 23
         // rotation angle of robot after an obstacle was detected
@@ -55,6 +60,6 @@ object Constants {
     }
 
     object Movement {
-        const val DEFAULT_SPEED = 400.0
+        const val DEFAULT_SPEED = 80.0
     }
 }
