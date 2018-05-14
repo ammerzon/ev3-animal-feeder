@@ -23,6 +23,8 @@ object Constants {
         val I_AAH_FEED_COLOR = ColorId.GREEN
         // colors of the other animals placed in the arena (e. g. tiger, ...)
         val ANIMAL_COLORS = arrayOf(ColorId.BLACK, ColorId.WHITE, ColorId.BLUE, ColorId.RED, ColorId.WHITE)
+        // min distance before the robot should stop
+        const val ULTRASONIC_THRESHOLD = 5    // TODO: Configure
     }
 
     object DemolishFence {

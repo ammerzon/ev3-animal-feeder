@@ -67,21 +67,32 @@ fun test01PrecepiceDetection() {
  * Roboter fährt auf Stein zu und stoppt kurz vor Berührung des Steines ab.
  */
 fun test02ObstacleStop() {
-    TODO("not implemented")
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        if (distance <= Constants.ObstacleCheck.ULTRASONIC_THRESHOLD) {
+            FeederRobot.movePilot.stop()
+        }
+    }
+
+    FeederRobot.movePilot.forward()
 }
 
 /**
  * Duplostein befindet sich direkt vor Roboter, Roboter erkennt Farbe des Futter und öffnet Greifarm.
  */
 fun test03FeedColorDetection() {
-    TODO("not implemented")
+    RxFeederRobot.rxColorSensorForward.colorId.subscribe { colorId ->
+        if (isMyFeedColor(colorId.id)) {
+            moveGrapplerTo(GrapplerPosition.BOTTOM_OPEN)
+        }
+    }
 }
 
 /**
  * Roboter schließt Greifarm und hebt Duplostein, hält ihn oben und kann ihn transportieren.
  */
 fun test04CarryStone() {
-    TODO("not implemented")
+    moveGrapplerTo(GrapplerPosition.BOTTOM_CLOSED)
+    moveGrapplerTo(GrapplerPosition.TOP)
 }
 
 /**
