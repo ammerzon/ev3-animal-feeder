@@ -31,6 +31,10 @@ object Constants {
         val FENCE_HEIGHT = 1.5      // TODO: Configure
     }
 
+    object StableDetection {
+        val ULTRASONIC_THRESHOLD = 10
+    }
+
     object DemolishFence {
         // vertical distance between the fence and the ultrasonic sensor
         val ULTRASONIC_THRESHOLD = 10

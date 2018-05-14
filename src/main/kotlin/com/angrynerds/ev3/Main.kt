@@ -236,7 +236,19 @@ fun test09Calibration() {
  * Der Roboter steht mit erhobenem Arm vor dem Gehege und fährt darauf zu. Wenn der Arm über dem Gehege ist soll es stoppen.
  */
 fun test10MeasureHeight() {
-    TODO("not implemented")
+    moveGrapplerTo(GrapplerPosition.TOP)
+    println("Place robot in front of the stable and press a key...")
+    Button.waitForAnyPress()
+    FeederRobot.movePilot.linearSpeed = Constants.Movement.DEFAULT_SPEED
+    FeederRobot.movePilot.forward()
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        if (distance.isFinite()) {
+            if (distance < Constants.StableDetection.ULTRASONIC_THRESHOLD) {
+                FeederRobot.movePilot.stop()
+                println("Found stable")
+            }
+        }
+    }
 }
 
 /**
