@@ -3,7 +3,8 @@ package com.angrynerds.ev3.extensions
 import lejos.hardware.sensor.EV3ColorSensor
 import lejos.robotics.Color
 
-fun EV3ColorSensor.getColor(): java.awt.Color? {
+
+fun EV3ColorSensor.awtColor(): java.awt.Color? {
     when (colorID) {
         Color.BLACK -> {
             return java.awt.Color.BLACK
@@ -32,8 +33,8 @@ fun EV3ColorSensor.getColor(): java.awt.Color? {
     }
 }
 
-fun EV3ColorSensor.getHtmlColor(): String {
-    val color = this.getColor()
+fun EV3ColorSensor.htmlColor(): String {
+    val color = this.awtColor()
     if (color != null) {
         return String.format("#%02x%02x%02x", color.red, color.green, color.blue)
     } else {

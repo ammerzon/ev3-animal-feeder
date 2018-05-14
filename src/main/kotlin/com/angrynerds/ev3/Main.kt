@@ -4,11 +4,20 @@ import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.enums.GrapplerPosition
 import com.angrynerds.ev3.enums.Obstacle
+import com.angrynerds.ev3.enums.Sound.CRACK_KID
+import com.angrynerds.ev3.enums.Sound.ERROR
 import com.angrynerds.ev3.extensions.getDistance
+import com.angrynerds.ev3.extensions.readColor
 import com.angrynerds.ev3.util.*
 import lejos.hardware.Button
+import lejos.hardware.Sound
+import lejos.hardware.lcd.LCD
+import lejos.robotics.Color
 import lejos.sensors.ColorId
+import lejos.utility.TextMenu
+import java.io.File
 import java.util.logging.Logger
+
 
 val logger = Logger.getLogger("main")!!
 
@@ -24,6 +33,28 @@ fun main(args: Array<String>) {
 
     logger.info("Press a button to start execution...")
     Button.waitForAnyPress()
+
+    standardOutClear();
+    LCD.clear()
+    val textMenu = TextMenu(arrayOf("1.1 Abgrunderkennung", "1.2 Stehen bleiben", "1.3 Futter-Farberkennung",
+            "1.4 Steintransport", "1.5 Gehegefindung", "1.6 Baumbeseitigung", "1.7 Zaunbeseitigung", "1.8 Hindernisserkennung",
+            "1.9 Kalibrierung", "1.10 Höhenmessung"), 1, "Test cases")
+    val selectedTest = textMenu.select()
+
+    standardOutClear();
+    LCD.clear()
+    when (selectedTest) {
+        0 -> test01PrecepiceDetection()
+        1 -> test02ObstacleStop()
+        2 -> test03FeedColorDetection()
+        3 -> test04CarryStone()
+        4 -> test05FindStable()
+        5 -> test06CutTree()
+        6 -> test07DemolishFence()
+        7 -> test08ObstacleDetection()
+        8 -> test09Calibration()
+        9 -> test10MeasureHeight()
+    }
 
     logger.info("Press a button to close the program...")
     Button.waitForAnyPress()
@@ -43,7 +74,7 @@ fun calibrateRobot() {
 }
 
 fun openConnections() {
-    logger.info("Open connections")
+    logger.info("Opening connections")
     FeederRobot.tractionMotorLeft
     RxFeederRobot.rxColorSensorForward
 }
@@ -107,9 +138,10 @@ fun test05FindStable() {
  */
 fun test06CutTree() {
     val treeMinDistance = 100 // TODO: configure
-    fun isTreeAhead() : Boolean {
+    fun isTreeAhead(): Boolean {
         return FeederRobot.infraredSensor.getDistance() < treeMinDistance
     }
+
     fun cutTree() {
         // Move grappler to middle position
         moveGrapplerTo(GrapplerPosition.MIDDLE)
@@ -123,7 +155,7 @@ fun test06CutTree() {
     }
 
     // Note that color should be checked for real detection
-    if(isTreeAhead())
+    if (isTreeAhead())
         cutTree();
 }
 
@@ -144,14 +176,15 @@ fun test08ObstacleDetection() {
 /**
  * Der Roboter steht mit erhobenem Arm vor dem Gehege und fährt darauf zu. Wenn der Arm über dem Gehege ist soll es stoppen.
  */
-fun test09MeasureHeight() {
+fun test10MeasureHeight() {
     TODO("not implemented")
 }
+
 
 /**
  * Move grappler to a specific height.
  */
-fun moveGrapplerTo(pos : GrapplerPosition) {
+fun moveGrapplerTo(pos: GrapplerPosition) {
     val delta = FeederRobot.grapplerPosition.rotations - pos.rotations
 
     FeederRobot.grabMotor.speed = if (delta > 0)
@@ -162,7 +195,7 @@ fun moveGrapplerTo(pos : GrapplerPosition) {
     FeederRobot.grapplerPosition = pos
 }
 
-fun getPossibleObstacles(color : ColorId, height : Double = 0.0) : Array<Obstacle> {
+fun getPossibleObstacles(color: ColorId, height: Double = 0.0): Array<Obstacle> {
     var possibleObstacles = arrayOf<Obstacle>()
     if (isFenceColor(color.id))
         possibleObstacles += Obstacle.FENCE
