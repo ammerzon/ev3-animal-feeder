@@ -30,7 +30,7 @@ object Constants {
         // height of fence
         val FENCE_HEIGHT = 1.5      // TODO: Configure
         // distance of obstacles to be recognized
-        val MIN_OBSTACLE_DISTANCE = 15
+        val MIN_OBSTACLE_DISTANCE = 23
         // rotation angle of robot after an obstacle was detected
         val ROTATION_ANGLE = PrecipiceDetection.ROTATION_ANGLE + 30
     }

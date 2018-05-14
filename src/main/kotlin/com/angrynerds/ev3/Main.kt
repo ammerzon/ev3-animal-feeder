@@ -241,7 +241,20 @@ fun debug(s: String) {
  * Dem Roboter werden unterschiedliche, relevante, Hindernisse (wie zB Baum, Zaun, Futter) vorgesetzt. Der Roboter reagiert anhand des vorgesetzten Hindernisses.
  */
 fun test08ObstacleDetection() {
-    TODO("not implemented")
+    println("Put obstacle before infrared sensor and press a button...")
+    Button.waitForAnyPress()
+
+    moveGrapplerTo(GrapplerPosition.TOP)
+    RxFeederRobot.rxInfraredSensor.distance.subscribe { irDist ->
+        if (irDist.isFinite() && irDist <= Constants.ObstacleCheck.MIN_OBSTACLE_DISTANCE) {
+            stopRobot()
+            moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+            rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
+            moveRobot()
+        }
+    }
+
+    moveRobot()
 }
 
 /**
