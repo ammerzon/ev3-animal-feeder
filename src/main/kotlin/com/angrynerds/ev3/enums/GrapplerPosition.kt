@@ -11,4 +11,7 @@ enum class GrapplerPosition(val rotations: Double) {
 
     val state = if (rotations == 0.0) GrapplerState.OPEN else GrapplerState.CLOSED
 
+    fun isBottom(): Boolean {
+        return this == BOTTOM_CLOSED || this == BOTTOM_OPEN
+    }
 }

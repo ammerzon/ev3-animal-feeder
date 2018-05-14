@@ -12,6 +12,8 @@ object Constants {
         const val ULTRASONIC_THRESHOLD_GRABBER_UP = 0.2
         // vertical distance between the floor and the ultrasonic sensor when the grabber position is down
         const val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.031000002
+        const val ROTATION_ANGLE = 90.0
+        const val BACKWARD_TRAVEL_DISTANCE = -100.0
     }
 
     object ObstacleCheck {

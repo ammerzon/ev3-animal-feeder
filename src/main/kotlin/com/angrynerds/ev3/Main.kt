@@ -89,7 +89,24 @@ fun initializeLogging() {
  * Roboter fährt auf Tischkante zu, erkennt Abgrund, wendet und fährt weiter.
  */
 fun test01PrecepiceDetection() {
-    TODO("not implemented")
+    println("Place roboter and press a key...")
+    FeederRobot.movePilot.linearSpeed = Constants.Movement.DEFAULT_SPEED
+    FeederRobot.movePilot.forward()
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        if (distance.isFinite()) {
+            if ((FeederRobot.grapplerPosition == GrapplerPosition.TOP && distance > Constants.PrecipiceDetection.ULTRASONIC_THRESHOLD_GRABBER_UP) ||
+                    (FeederRobot.grapplerPosition.isBottom() && distance > Constants.PrecipiceDetection.ULTRASONIC_THRESHOLD_GRABBER_DOWN)) {
+                FeederRobot.movePilot.stop()
+                Thread.sleep(1000)
+                FeederRobot.movePilot.travel(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+                FeederRobot.movePilot.rotate(Constants.PrecipiceDetection.ROTATION_ANGLE)
+            }
+            Thread.sleep(2000)
+            if (!FeederRobot.movePilot.isMoving) {
+                FeederRobot.movePilot.forward()
+            }
+        }
+    }
 }
 
 /**
@@ -252,63 +269,3 @@ fun getPossibleObstacles(color: ColorId, height: Double = 0.0): Array<Obstacle> 
 
     return possibleObstacles
 }
-
-/*fun testAvoidEnclosure() {
-    print("Started testAvoidEnclosure")
-    FeederRobot.movePilot.linearSpeed = FORWARD_SPEED
-    FeederRobot.movePilot.forward()
-    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
-        print("UR: " + distance)
-        if (distance.isFinite()) {
-            if ((isUltrasonicRaised && distance > ULTRASONIC_HIGH_TABLE_DISTANCE) || (!isUltrasonicRaised && distance > ULTRASONIC_LOW_TABLE_DISTANCE)) {
-                FeederRobot.movePilot.stop()
-                FeederRobot.movePilot.travel(-100.0)
-                FeederRobot.movePilot.rotate(90.0)
-            }
-            Thread.sleep(2000)
-            if (!FeederRobot.movePilot.isMoving) {
-                FeederRobot.movePilot.forward()
-            }
-        }
-    }
-}
-
-fun testAvoidThings() {
-    print("Started testAvoidThings")
-    FeederRobot.movePilot.linearSpeed = FORWARD_SPEED
-    FeederRobot.movePilot.forward()
-    obstacles().subscribe { x -> onObstacle(x) }
-}
-
-fun onObstacle(obstacleDistance: Float) {
-
-    if (FeederRobot.infraredSensor.getDistance() > OBSTACLE_MAX_DISTANCE)
-        return
-
-    dodgeObstacle()
-}
-
-fun dodgeObstacle() {
-    FeederRobot.movePilot.rotate(20.0)
-    FeederRobot.movePilot.forward()
-}
-
-fun obstacles(): Observable<Float> {
-    return RxEV3IRSensor(FeederRobot.infraredSensor).distance
-            .filter { distance -> distance <= OBSTACLE_MAX_DISTANCE }
-}
-
-fun testRaiseStone() {
-    println("Started testRaiseStone")
-    println("Place stone and press a button ...")
-    Button.waitForAnyPress()
-    val forwardColorId = RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
-    if (forwardColorId.equals(foodColor)) {
-        println("Food recognized color=${forwardColorId.name}")
-        FeederRobot.grabMotor.speed = GRABBER_UPWARD_SPEED + 200
-        FeederRobot.grabMotor.rotate(24000)
-    } else {
-        println("No food recognized color=${forwardColorId.name}")
-        FeederRobot.movePilot.travel(-50.0)
-    }
-}*/
