@@ -36,8 +36,8 @@ object Constants {
         const val UPWARD_SPEED = 400
         const val DOWNWARD_SPEED = 200
         // rotations needed to raise the grabber
-        const val GRAB_MOTOR_MAX_ROTATIONS = 1800
-        const val CLOSING_ROTATION = 500 //TODO: configure
+        const val TOTAL_ANGLE = 5400
+        const val CLOSING_ANGLE = 2100 //TODO: configure
     }
 
     object Movement {

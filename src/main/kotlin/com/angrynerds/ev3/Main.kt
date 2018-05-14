@@ -16,14 +16,16 @@ fun main(args: Array<String>) {
 
     logger.info("Animal feeder started")
     openConnections()
-    resetToInitialState()
+    //resetToInitialState()
 
     logger.info("Press a button to calibrate the robot...")
     Button.waitForAnyPress()
-    calibrateRobot()
+    //calibrateRobot()
 
     logger.info("Press a button to start execution...")
     Button.waitForAnyPress()
+
+
 
     logger.info("Press a button to close the program...")
     Button.waitForAnyPress()
