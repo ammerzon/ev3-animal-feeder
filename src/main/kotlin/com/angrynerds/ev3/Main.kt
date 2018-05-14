@@ -16,7 +16,6 @@ import lejos.utility.TextMenu
 import java.io.File
 import java.util.logging.Logger
 
-
 val logger = Logger.getLogger("main")!!
 
 fun main(args: Array<String>) {
@@ -42,7 +41,7 @@ fun main(args: Array<String>) {
     standardOutClear();
     LCD.clear()
     when (selectedTest) {
-        0 -> test01PrecepiceDetection()
+        0 -> test01PrecipiceDetection()
         1 -> test02ObstacleStop()
         2 -> test03FeedColorDetection()
         3 -> test04CarryStone()
@@ -88,8 +87,9 @@ fun initializeLogging() {
 /**
  * Roboter fährt auf Tischkante zu, erkennt Abgrund, wendet und fährt weiter.
  */
-fun test01PrecepiceDetection() {
-    println("Place roboter and press a key...")
+fun test01PrecipiceDetection() {
+    println("Place robot and press a key...")
+    Button.waitForAnyPress()
     FeederRobot.movePilot.linearSpeed = Constants.Movement.DEFAULT_SPEED
     FeederRobot.movePilot.forward()
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
@@ -113,6 +113,8 @@ fun test01PrecepiceDetection() {
  * Roboter fährt auf Stein zu und stoppt kurz vor Berührung des Steines ab.
  */
 fun test02ObstacleStop() {
+    println("Place robot and press a key...")
+    Button.waitForAnyPress()
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
         if (isFeed(distance)) {
             stopRobot()
@@ -126,6 +128,8 @@ fun test02ObstacleStop() {
  * Duplostein befindet sich direkt vor Roboter, Roboter erkennt Farbe des Futter und öffnet Greifarm.
  */
 fun test03FeedColorDetection() {
+    println("Place robot in front of feed and press a key...")
+    Button.waitForAnyPress()
     RxFeederRobot.rxColorSensorForward.colorId.subscribe { colorId ->
         if (isMyFeedColor(colorId.id)) {
             moveGrapplerTo(GrapplerPosition.BOTTOM_OPEN)
@@ -137,6 +141,8 @@ fun test03FeedColorDetection() {
  * Roboter schließt Greifarm und hebt Duplostein, hält ihn oben und kann ihn transportieren.
  */
 fun test04CarryStone() {
+    println("Put feed in grappler and press a key...")
+    Button.waitForAnyPress()
     moveGrapplerTo(GrapplerPosition.BOTTOM_CLOSED)
     moveGrapplerTo(GrapplerPosition.TOP)
 }
@@ -152,6 +158,8 @@ fun test05FindStable() {
  * Baum befindet sich sich ca. 20 cm vor Roboter. Dieser erkennt Baum und schmeißt ihn um.
  */
 fun test06CutTree() {
+    println("Place robot in front of tree and press a key...")
+    Button.waitForAnyPress()
     val treeMinDistance = 100 // TODO: configure
     fun isTreeAhead(): Boolean {
         return FeederRobot.infraredSensor.getDistance() < treeMinDistance
@@ -178,6 +186,8 @@ fun test06CutTree() {
  * Roboter befindet sich in der Arena und stößt Zaun weg.
  */
 fun test07DemolishFence() {
+    println("Place robot in front of fence and press a key...")
+    Button.waitForAnyPress()
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
         if (isFence(distance)) {
             stopRobot()
@@ -187,16 +197,6 @@ fun test07DemolishFence() {
     }
 
     moveRobot()
-}
-
-private fun moveRobot() {
-    FeederRobot.movePilot.forward()
-    println("robot moved forward")
-}
-
-private fun stopRobot() {
-    FeederRobot.movePilot.stop()
-    println("robot stopped")
 }
 
 /**
@@ -239,7 +239,6 @@ fun test10MeasureHeight() {
     TODO("not implemented")
 }
 
-
 /**
  * Move grappler to a specific height.
  */
@@ -268,4 +267,14 @@ fun getPossibleObstacles(color: ColorId, height: Double = 0.0): Array<Obstacle> 
         possibleObstacles += Obstacle.FEED_OPPONENT
 
     return possibleObstacles
+}
+
+private fun moveRobot() {
+    FeederRobot.movePilot.forward()
+    println("robot moved forward")
+}
+
+private fun stopRobot() {
+    FeederRobot.movePilot.stop()
+    println("robot stopped")
 }
