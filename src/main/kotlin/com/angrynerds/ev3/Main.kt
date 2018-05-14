@@ -91,19 +91,19 @@ fun initializeLogging() {
 fun test01PrecepiceDetection() {
     println("Place roboter and press a key...")
     FeederRobot.movePilot.linearSpeed = Constants.Movement.DEFAULT_SPEED
-    FeederRobot.movePilot.forward()
+    moveRobot()
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
         if (distance.isFinite()) {
             if ((FeederRobot.grapplerPosition == GrapplerPosition.TOP && distance > Constants.PrecipiceDetection.ULTRASONIC_THRESHOLD_GRABBER_UP) ||
                     (FeederRobot.grapplerPosition.isBottom() && distance > Constants.PrecipiceDetection.ULTRASONIC_THRESHOLD_GRABBER_DOWN)) {
-                FeederRobot.movePilot.stop()
+                stopRobot()
                 Thread.sleep(1000)
-                FeederRobot.movePilot.travel(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
-                FeederRobot.movePilot.rotate(Constants.PrecipiceDetection.ROTATION_ANGLE)
+                moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+                rotateRobot(Constants.PrecipiceDetection.ROTATION_ANGLE)
             }
             Thread.sleep(2000)
             if (!FeederRobot.movePilot.isMoving) {
-                FeederRobot.movePilot.forward()
+                moveRobot()
             }
         }
     }
@@ -165,7 +165,7 @@ fun test06CutTree() {
         val grapplerLength = 50.0
         val treeDistance = FeederRobot.infraredSensor.getDistance() - grapplerLength
         val travelDistance = treeDistance + overturnDistance
-        FeederRobot.movePilot.travel(travelDistance, true)
+        moveRobot(travelDistance, true)
         // TODO: not sure, if immediate return has the desired effect
     }
 
@@ -182,7 +182,7 @@ fun test07DemolishFence() {
         if (isFence(distance)) {
             stopRobot()
             moveGrapplerTo(GrapplerPosition.MIDDLE)
-            FeederRobot.movePilot.travel(5.0)
+            moveRobot(5.0)
         }
     }
 
@@ -196,7 +196,21 @@ private fun moveRobot() {
 
 private fun stopRobot() {
     FeederRobot.movePilot.stop()
-    println("robot stopped")
+    debug("robot stopped")
+}
+
+fun rotateRobot(angle: Double) {
+    FeederRobot.movePilot.rotate(angle)
+    debug("robot rotated $angle")
+}
+
+fun moveRobot(distance: Double, immediateReturn: Boolean = false) {
+    FeederRobot.movePilot.travel(distance, immediateReturn)
+    debug("robot travelled $distance (immediate return = $immediateReturn)")
+}
+
+fun debug(s: String) {
+    // TODO
 }
 
 /**
