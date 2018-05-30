@@ -6,12 +6,14 @@ import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getDistance
 import com.angrynerds.ev3.util.*
+import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.lcd.LCD
 import lejos.sensors.ColorId
 import java.util.logging.Logger
 
 val logger = Logger.getLogger("main")!!
+val compositeSubscription = CompositeDisposable()
 
 fun main(args: Array<String>) {
 
@@ -36,7 +38,19 @@ fun main(args: Array<String>) {
 
 fun resetToInitialState() {
     logger.info("Resetting to initial state")
-    moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+    val disposable = RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        if (distance.isFinite()) {
+            if (distance in Constants.Reset.ULTRASONIC_GRABBER_DOWN) {
+                FeederRobot.grabMotor.stop()
+                FeederRobot.gripperArmPosition = GripperArmPosition.BOTTOM_CLOSED
+                moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+                compositeSubscription.clear()
+            }
+        }
+    }
+    compositeSubscription.add(disposable)
+    FeederRobot.grabMotor.speed = Constants.Reset.SPEED
+    FeederRobot.grabMotor.backward()
 }
 
 fun calibrateRobot() {
@@ -67,19 +81,13 @@ fun calibrateRobot() {
     logger.info("Animal type: " + FeederRobot.animalType)
 }
 
+/**
+ * Opens all motor ports and sensor ports and creates the sensor observables.
+ */
 fun openConnections() {
     logger.info("Opening connections")
     FeederRobot.grabMotor
     RxFeederRobot.rxUltrasonicSensor
-    RxFeederRobot.rxColorSensorForward
-}
-
-fun initializeLogging() {
-    logger.info("Initialize sensor values logging")
-    RxFeederRobot.rxColorSensorForward.colorId.subscribe({ println("Color forward: " + it) })
-    RxFeederRobot.rxColorSensorRight.colorId.subscribe({ println("Color right: " + it) })
-    RxFeederRobot.rxInfraredSensor.distance.subscribe({ println("IR: " + it) })
-    RxFeederRobot.rxUltrasonicSensor.distance.subscribe({ println("US: " + it) })
 }
 
 /**
@@ -89,28 +97,9 @@ fun initializeLogging() {
  */
 fun moveGripperArmTo(position: GripperArmPosition) {
     val delta = position.rotations - FeederRobot.gripperArmPosition.rotations
-    println(FeederRobot.gripperArmPosition.rotations)
-    println(position.rotations)
-    println("Delta: $delta")
 
-    FeederRobot.grabMotor.speed = if (delta > 0) Constants.GripperArm.UPWARD_SPEED else Constants.GripperArm.DOWNWARD_SPEED
+    FeederRobot.grabMotor.speed = Constants.GripperArm.SPEED
     FeederRobot.grabMotor.rotate(delta.toInt())
 
     FeederRobot.gripperArmPosition = position
-}
-
-private fun moveRobot() {
-    FeederRobot.movePilot.forward()
-}
-
-private fun stopRobot() {
-    FeederRobot.movePilot.stop()
-}
-
-fun rotateRobot(angle: Double) {
-    FeederRobot.movePilot.rotate(angle)
-}
-
-fun moveRobot(distance: Double, immediateReturn: Boolean = false) {
-    FeederRobot.movePilot.travel(distance, immediateReturn)
 }

@@ -8,7 +8,8 @@ object Constants {
     }
 
     object Reset {
-        val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.0..0.06
+        val ULTRASONIC_GRABBER_DOWN = 0.0..0.06
+        const val SPEED = 800
     }
 
     object PrecipiceDetection {
@@ -54,12 +55,12 @@ object Constants {
         val ULTRASONIC_THRESHOLD = 10
     }
 
-    object Grabber {
-        const val UPWARD_SPEED = 400
-        const val DOWNWARD_SPEED = 200
-        // rotations needed to raise the grabber
-        const val TOTAL_ANGLE = 5400
-        const val CLOSING_ANGLE = 2100
+    object GripperArm {
+        const val SPEED = 800
+        const val TOP_ANGLE = 5400.0
+        const val BOTTOM_CLOSED_ANGLE = 2100.0
+        const val BOTTOM_OPEN_ANGLE = 0.0
+        const val MIDDLE_ANGLE = 2400.0
     }
 
     object Movement {
