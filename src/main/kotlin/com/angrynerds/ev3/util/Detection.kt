@@ -31,3 +31,4 @@ fun isFence(distance: Float): Boolean {
 fun isFeed(distance: Float): Boolean {
     return distance <= Constants.ObstacleCheck.FEED_HEIGHT
 }
+

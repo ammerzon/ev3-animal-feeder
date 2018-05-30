@@ -260,7 +260,7 @@ fun test10MeasureHeight() {
     FeederRobot.movePilot.forward()
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
         if (distance.isFinite()) {
-            if (distance < Constants.StableDetection.ULTRASONIC_THRESHOLD) {
+            if (distance < Constants.StableDetection.STABLE_HEIGHT) {
                 FeederRobot.movePilot.stop()
                 println("Found stable")
             }
@@ -283,22 +283,6 @@ fun moveGripperArmTo(position: GripperArmPosition) {
     FeederRobot.grabMotor.rotate(delta.toInt())
 
     FeederRobot.gripperArmPosition = position
-}
-
-fun getPossibleObstacles(color: ColorId, height: Double = 0.0): Array<Obstacle> {
-    var possibleObstacles = arrayOf<Obstacle>()
-    if (isFenceColor(color.id))
-        possibleObstacles += Obstacle.FENCE
-    if (isTreeColor(color.id))
-        possibleObstacles += Obstacle.TREE
-    if (isAnimalColor(color.id))
-        possibleObstacles += Obstacle.ANIMAL
-    if (isMyFeedColor(color.id))
-        possibleObstacles += Obstacle.FEED
-    if (isOpponentFeedColor(color.id))
-        possibleObstacles += Obstacle.FEED_OPPONENT
-
-    return possibleObstacles
 }
 
 private fun moveRobot() {
