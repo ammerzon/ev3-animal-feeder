@@ -1,6 +1,6 @@
 package com.angrynerds.ev3.enums
 
-enum class GrapplerState {
+enum class GripperArmState {
     OPEN,
     CLOSED
 }

@@ -34,7 +34,7 @@ object FeederRobot {
 
     //region Modes
     var animalType = AnimalType.WINNIE_POOH
-    var grapplerPosition = GrapplerPosition.BOTTOM_OPEN
+    var gripperArmPosition = GripperArmPosition.BOTTOM_OPEN
     var mode = Mode.HALTING
     var searchMode = SearchMode.FEED
     //endregion

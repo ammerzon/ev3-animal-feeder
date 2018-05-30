@@ -42,8 +42,8 @@ object Constants {
 
     object StableDetection {
         val ULTRASONIC_THRESHOLD = 10
-        val WINNIE_POOH_STABLE_COLOR = ColorId.YELLOW // TODO: configure
-        val I_AAH_FEED_COLOR = ColorId.RED // TODO: configure
+        val WINNIE_POOH_STABLE_COLOR = ColorId.BLUE
+        val I_AAH_FEED_COLOR = ColorId.WHITE
     }
 
     object DemolishFence {
@@ -56,7 +56,7 @@ object Constants {
         const val DOWNWARD_SPEED = 200
         // rotations needed to raise the grabber
         const val TOTAL_ANGLE = 5400
-        const val CLOSING_ANGLE = 2100 //TODO: configure
+        const val CLOSING_ANGLE = 2100
     }
 
     object Movement {
