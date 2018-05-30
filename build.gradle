@@ -34,14 +34,11 @@ configurations.all {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile "com.github.ammerzon:RxLeJOS:-SNAPSHOT"
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.10'
     compile group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: '2.2.0'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.10.0'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.10.0'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.0'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+    compile "com.github.ammerzon:RxLeJOS:master-SNAPSHOT"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
@@ -54,30 +51,4 @@ compileTestKotlin {
 
 mindstorms {
     main = 'com.angrynerds.ev3.MainKt'
-}
-
-project.task(dependsOn: 'copyToRobot', group: 'mindstorms', 'launch2') {
-
-    doLast {
-        ant.lifecycleLogLevel = AntBuilder.AntMessagePriority.INFO
-
-        ant.taskdef(
-                name: 'sshexec',
-                classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
-                classpath: configurations.scp.asPath)
-
-        File file = new File(buildDir, 'libs')
-                .listFiles()
-                .find { it.name.endsWith '.jar' }
-        String application = "${project.mindstorms.home}/" + file.getName()
-
-        ant.sshexec(
-                username: "${project.mindstorms.user}",
-                password: "${project.mindstorms.password}",
-                host: "${project.mindstorms.ip}",
-                command: "jrun -cp $application ${project.mindstorms.main}",
-                trust: true
-        )
-    }
-
 }
