@@ -36,12 +36,14 @@ object Constants {
         // height of fence 0.03..0.04
         val FENCE_HEIGHT = 3f
         val TREE_HEIGHT = 6f..20f
+        val ANIMAL_HEIGHT = 4f..10f
         // distance of obstacles to be recognized
         val MIN_OBSTACLE_DISTANCE = 5f
         // rotation angle of robot after an obstacle was detected
         val ROTATION_ANGLE = PrecipiceDetection.ROTATION_ANGLE + 30
         // height at which is a robot detected above
         const val ROBOT_DETECTION_MIN_HEIGHT = 8f
+        const val ROBOT_DETECTION_MAX_DISTANCE = 5f
     }
 
     object StableDetection {

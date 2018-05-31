@@ -20,7 +20,7 @@ object FeederRobot {
 
     //region Sensors
     var infraredSensor = EV3IRSensor(Ports.infraredSensor)
-    var colorSensorRight = EV3ColorSensor(Ports.colorSensorRight)
+    var colorSensorVertical = EV3ColorSensor(Ports.colorSensorVertical)
     var colorSensorForward = EV3ColorSensor(Ports.colorSensorForward)
     var ultrasonicSensor = EV3UltrasonicSensor(Ports.ultrasonicSensor)
     //endregion
@@ -40,7 +40,7 @@ object FeederRobot {
     //endregion
 
     fun close() {
-        val devices = arrayOf(tractionMotorRight, tractionMotorLeft, grabMotor, infraredSensor, colorSensorRight, colorSensorForward, ultrasonicSensor)
+        val devices = arrayOf(tractionMotorRight, tractionMotorLeft, grabMotor, infraredSensor, colorSensorVertical, colorSensorForward, ultrasonicSensor)
         devices.forEach(Device::close)
     }
 }

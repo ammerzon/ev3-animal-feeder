@@ -40,6 +40,10 @@ class ObstacleInfo {
         detectedColor(color)
     }
 
+    fun anyObstaclePossible(): Boolean {
+        return maxHeight >= Constants.ObstacleCheck.FEED_HEIGHT
+    }
+
     fun getPossibleObstacles(): Array<Obstacle> {
         var possibleObstacles = arrayOf<Obstacle>()
 
@@ -96,7 +100,7 @@ class ObstacleInfo {
     fun isAnimal(): Boolean {
         return colors.any {
             !Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(it)
-        }
+        } && isHeightInRange(Constants.ObstacleCheck.ANIMAL_HEIGHT)
     }
 
     fun isMyFeed(): Boolean {

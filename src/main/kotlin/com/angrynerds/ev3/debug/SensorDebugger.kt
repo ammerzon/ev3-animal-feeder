@@ -22,7 +22,7 @@ class SensorDebugger : HttpHandler {
                 "<body>" +
                 "<b>Infrared:</b> ${FeederRobot.infraredSensor.getDistance()}<br/>" +
                 "<b>Ultrasonic:</b> ${FeederRobot.ultrasonicSensor.getDistance()}<br/>" +
-                "<b style=\"color:${FeederRobot.colorSensorRight.htmlColor()}\">Right Color: </b>${FeederRobot.colorSensorRight.colorID} <br/>" +
+                "<b style=\"color:${FeederRobot.colorSensorVertical.htmlColor()}\">Right Color: </b>${FeederRobot.colorSensorVertical.colorID} <br/>" +
                 "<b style=\"color:${FeederRobot.colorSensorForward.htmlColor()}\">Forward Color: </b>${FeederRobot.colorSensorForward.colorID}" +
                 "<br /><button onclick=\"stopReload();\">Stop auto refresh!</button>" +
                 "<button onclick=\"startReload();\">Start auto refresh!</button>" +

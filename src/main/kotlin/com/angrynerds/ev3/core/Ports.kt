@@ -14,6 +14,6 @@ object Ports {
     val colorSensorForward = SensorPort.S1
     val infraredSensor = SensorPort.S2
     val ultrasonicSensor = SensorPort.S3
-    val colorSensorRight = SensorPort.S4
+    val colorSensorVertical = SensorPort.S4
     //endregion
 }
