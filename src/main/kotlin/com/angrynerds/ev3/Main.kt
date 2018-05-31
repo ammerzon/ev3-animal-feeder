@@ -1,5 +1,6 @@
 package com.angrynerds.ev3
 
+import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.enums.GripperArmPosition
@@ -28,12 +29,25 @@ fun main(args: Array<String>) {
     logger.info("Press a button to start execution...")
     Button.waitForAnyPress()
 
+    // Exec
+    testDetector()
+
     standardOutClear();
     LCD.clear()
 
     logger.info("Press a button to close the program...")
     Button.waitForAnyPress()
     FeederRobot.close()
+}
+
+fun testDetector() {
+    logger.info("Detecting...")
+
+    Detector.detections.subscribe {
+        logger.info("detected: $it")
+    }
+
+    Button.waitForAnyPress()
 }
 
 fun resetToInitialState() {

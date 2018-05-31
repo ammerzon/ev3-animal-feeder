@@ -2,6 +2,7 @@ package com.angrynerds.ev3.core
 
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
+import com.angrynerds.ev3.logger
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
@@ -11,27 +12,27 @@ import java.util.concurrent.TimeUnit
 
 
 object Detector {
-    var detections: Subject<DetectionType> = PublishSubject.create()
+    private val detectionSubject: Subject<DetectionType> = PublishSubject.create()
+    private val subscribers = CompositeDisposable()
+
+    val detections = detectionSubject
+            .doOnSubscribe { start() }
+            .doOnDispose{ subscribers.clear() }!!
 
     var currentObstacleInfo: ObstacleInfo? = null
     var detectionMode = DetectionMode.DEFAULT
 
-    private val subscribers = CompositeDisposable()
-
-    init {
-        detections.doOnSubscribe { start() }
-        detections.doOnDispose { subscribers.clear() }
-    }
-
     private fun start() {
+        logger.info("start detecting")
+        val timeout = 500L //ms
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
-                .timeout(200, TimeUnit.MILLISECONDS)
+                .timeout(timeout, TimeUnit.MILLISECONDS)
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
-                .timeout(200, TimeUnit.MILLISECONDS)
+                .timeout(timeout, TimeUnit.MILLISECONDS)
         val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-                .timeout(200, TimeUnit.MILLISECONDS)
+                .timeout(timeout, TimeUnit.MILLISECONDS)
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
-                .timeout(200, TimeUnit.MILLISECONDS)
+                .timeout(timeout, TimeUnit.MILLISECONDS)
 
         subscribers.addAll(
             ultrasonicObservable.subscribe(::onUltrasonicSensor),
@@ -95,6 +96,7 @@ object Detector {
     }
 
     private fun onUltrasonicSensor(distance: Float) {
+        logger.info("us value received")
         val distanceInCm = getCmFromUSValue(distance)
         val height = FeederRobot.gripperArmPosition.height - distanceInCm
         onHeight(height)
@@ -116,7 +118,7 @@ object Detector {
     private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
         if (!force || detectionMode == DetectionMode.IGNORE)
             return
-        detections.onNext(detectionType)
+        detectionSubject.onNext(detectionType)
     }
 
     enum class DetectionMode {
