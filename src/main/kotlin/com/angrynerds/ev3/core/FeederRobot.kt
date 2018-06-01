@@ -1,6 +1,10 @@
 package com.angrynerds.ev3.core
 
-import com.angrynerds.ev3.enums.*
+import com.angrynerds.ev3.enums.AnimalType
+import com.angrynerds.ev3.enums.GripperArmPosition
+import com.angrynerds.ev3.enums.Mode
+import com.angrynerds.ev3.enums.SearchMode
+import com.angrynerds.ev3.util.Constants
 import lejos.hardware.Device
 import lejos.hardware.motor.EV3LargeRegulatedMotor
 import lejos.hardware.motor.EV3MediumRegulatedMotor
@@ -42,5 +46,44 @@ object FeederRobot {
     fun close() {
         val devices = arrayOf(tractionMotorRight, tractionMotorLeft, grabMotor, infraredSensor, colorSensorVertical, colorSensorForward, ultrasonicSensor)
         devices.forEach(Device::close)
+    }
+
+    fun moveRobot() {
+        FeederRobot.mode = Mode.MOVING
+        FeederRobot.movePilot.forward()
+    }
+
+    fun stopRobot(delayAfter: Long = 0) {
+        FeederRobot.movePilot.stop()
+        FeederRobot.mode = Mode.HALTING
+        Thread.sleep(delayAfter)
+    }
+
+    fun rotateRobot(angle: Double) {
+        val modeBefore: Mode = FeederRobot.mode
+        FeederRobot.mode = Mode.ROTATING
+        FeederRobot.movePilot.rotate(angle)
+        FeederRobot.mode = modeBefore
+    }
+
+    fun moveRobot(distance: Double, immediateReturn: Boolean = false) {
+        val modeBefore: Mode = FeederRobot.mode
+        FeederRobot.mode = Mode.MOVING
+        FeederRobot.movePilot.travel(distance, immediateReturn)
+        FeederRobot.mode = modeBefore
+    }
+
+    fun turnAround(moveAfterTurn: Boolean = true, delayAfterRotation: Long = 0) {
+        FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+        FeederRobot.rotateRobot(Constants.PrecipiceDetection.ROTATION_ANGLE)
+        Thread.sleep(delayAfterRotation)
+        if (moveAfterTurn) FeederRobot.moveRobot()
+    }
+
+    fun avoidObstacle(delayAfterRotation: Long = 0) {
+        FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+        FeederRobot.rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
+        Thread.sleep(delayAfterRotation)
+        FeederRobot.moveRobot()
     }
 }

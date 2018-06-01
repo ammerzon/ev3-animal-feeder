@@ -4,13 +4,13 @@ import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.enums.GripperArmPosition
-import com.angrynerds.ev3.enums.Obstacle
-import com.angrynerds.ev3.extensions.getDistance
-import com.angrynerds.ev3.util.*
+import com.angrynerds.ev3.enums.Mode
+import com.angrynerds.ev3.enums.SearchMode
+import com.angrynerds.ev3.util.Constants
+import com.angrynerds.ev3.util.standardOutClear
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.lcd.LCD
-import lejos.sensors.ColorId
 import java.util.logging.Logger
 
 val logger = Logger.getLogger("main")!!
@@ -30,7 +30,9 @@ fun main(args: Array<String>) {
     Button.waitForAnyPress()
 
     // Exec
-    testDetector()
+    //testDetector()
+
+    runRobot()
 
     standardOutClear();
     LCD.clear()
@@ -39,6 +41,126 @@ fun main(args: Array<String>) {
     Button.waitForAnyPress()
     FeederRobot.close()
 }
+
+fun runRobot() {
+    FeederRobot.mode = Mode.MOVING  // need it?
+
+    Detector.detections.subscribe { it ->
+        printStatusOf("detector")
+        // do not trigger any action if precipice avoiding is in progress (danger of rotating twice 180deg)
+        if (FeederRobot.mode != Mode.AVOIDING_PRECIPICE) {
+            if (it != null) when (it) {
+                Detector.DetectionType.PRECIPICE -> {
+                    onPrecipice()
+                }
+                Detector.DetectionType.OBSTACLE -> {
+                    val obstacleInfo = Detector.currentObstacleInfo!!
+                    when {
+                        obstacleInfo.isFence() -> {
+                            onFence()
+                        }
+                        obstacleInfo.isTree() -> {
+                            onTree()
+                        }
+                        obstacleInfo.isAnimal() -> {
+                            onAnimal()
+                        }
+                        obstacleInfo.isMyFeed() -> {
+                            onFeed()
+                        }
+                        obstacleInfo.isOpponentFeed() -> {
+                            onOpponentFeed()
+                        }
+                        obstacleInfo.isMyStable() -> {
+                            onStable()
+                        }
+                        obstacleInfo.isOpponentStable() -> {
+                            onOpponentStable()
+                        }
+                        obstacleInfo.isRobot() -> {
+                            onRobot()
+                        }
+                    }
+                }
+                Detector.DetectionType.NOTHING -> {
+                    TODO()
+                }
+                Detector.DetectionType.ROBOT -> {
+                    onRobot()
+                }
+            }
+        }
+    }
+}
+
+private fun onPrecipice() {
+    val modeBefore: Mode = FeederRobot.mode
+    FeederRobot.mode = Mode.AVOIDING_PRECIPICE
+    FeederRobot.stopRobot(1000)
+    FeederRobot.turnAround(true, 2000)
+    FeederRobot.mode = modeBefore
+}
+
+fun onRobot() {
+    printStatusOf("onRobot")
+    FeederRobot.avoidObstacle()
+}
+
+fun onOpponentStable() {
+    printStatusOf("onOpponentStable")
+    FeederRobot.avoidObstacle()
+}
+
+fun onStable() {
+    printStatusOf("onStable")
+    if (FeederRobot.searchMode == SearchMode.STABLE) {
+        FeederRobot.stopRobot()
+        moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+        FeederRobot.turnAround()
+        FeederRobot.searchMode = SearchMode.FEED
+    }
+}
+
+fun onOpponentFeed() {
+    printStatusOf("onOpponentFeed")
+    FeederRobot.stopRobot(1000)
+    FeederRobot.avoidObstacle()
+}
+
+fun onFeed() {
+    printStatusOf("onFeed")
+    if (FeederRobot.searchMode == SearchMode.FEED) {
+        FeederRobot.stopRobot()
+        moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
+        // TODO: is here a delay necessary or is moveGripperArmTo blocking?
+        moveGripperArmTo(GripperArmPosition.TOP)
+        FeederRobot.searchMode = SearchMode.STABLE
+    }
+}
+
+fun onAnimal() {
+    printStatusOf("onAnimal")
+    FeederRobot.stopRobot(1000)
+    FeederRobot.avoidObstacle()
+}
+
+fun onTree() {
+    printStatusOf("onTree")
+    FeederRobot.stopRobot(1000)
+    // TODO crash into tree
+}
+
+fun onFence() {
+    printStatusOf("onFence")
+    FeederRobot.stopRobot(1000)
+    // demolish
+}
+
+fun printStatusOf(funName: String) = logger.info("$funName: " +
+        "| searchMode=${FeederRobot.searchMode.name} " +
+        "| mode=${FeederRobot.mode.name} " +
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" /*+
+        "| animalType=${FeederRobot.animalType.name}"*/)
 
 fun testDetector() {
     logger.info("Detecting...")
