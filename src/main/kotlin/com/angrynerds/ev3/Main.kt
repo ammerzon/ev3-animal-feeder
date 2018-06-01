@@ -2,12 +2,15 @@ package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
+import com.angrynerds.ev3.core.ObstacleInfo
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Mode
+import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.enums.SearchMode
 import com.angrynerds.ev3.util.Constants
 import com.angrynerds.ev3.util.standardOutClear
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.lcd.LCD
@@ -42,55 +45,39 @@ fun main(args: Array<String>) {
     FeederRobot.close()
 }
 
+fun Observable<ObstacleInfo>.filterPrecipice(): Observable<ObstacleInfo> {
+    return this.filter { FeederRobot.mode != Mode.AVOIDING_PRECIPICE }
+}
+
 fun runRobot() {
     FeederRobot.mode = Mode.MOVING  // need it?
 
-    Detector.detections.subscribe { it ->
-        printStatusOf("detector")
-        // do not trigger any action if precipice avoiding is in progress (danger of rotating twice 180deg)
-        if (FeederRobot.mode != Mode.AVOIDING_PRECIPICE) {
-            if (it != null) when (it) {
-                Detector.DetectionType.PRECIPICE -> {
-                    onPrecipice()
-                }
-                Detector.DetectionType.OBSTACLE -> {
-                    val obstacleInfo = Detector.currentObstacleInfo!!
-                    when {
-                        obstacleInfo.isFence() -> {
-                            onFence()
-                        }
-                        obstacleInfo.isTree() -> {
-                            onTree()
-                        }
-                        obstacleInfo.isAnimal() -> {
-                            onAnimal()
-                        }
-                        obstacleInfo.isMyFeed() -> {
-                            onFeed()
-                        }
-                        obstacleInfo.isOpponentFeed() -> {
-                            onOpponentFeed()
-                        }
-                        obstacleInfo.isMyStable() -> {
-                            onStable()
-                        }
-                        obstacleInfo.isOpponentStable() -> {
-                            onOpponentStable()
-                        }
-                        obstacleInfo.isRobot() -> {
-                            onRobot()
-                        }
-                    }
-                }
-                Detector.DetectionType.NOTHING -> {
-                    TODO()
-                }
-                Detector.DetectionType.ROBOT -> {
-                    onRobot()
-                }
-            }
-        }
+    Detector.detections.subscribe { printStatusOf("detector") }
+
+    Detector.obstacles(Obstacle.STABLE).filterPrecipice().subscribe(::onStable)
+    Detector.obstacles(Obstacle.STABLE_OPPONENT).filterPrecipice().subscribe(::onOpponentStable)
+    Detector.obstacles(Obstacle.FEED).filterPrecipice().subscribe(::onFeed)
+    Detector.obstacles(Obstacle.FEED_OPPONENT).filterPrecipice().subscribe(::onOpponentFeed)
+    Detector.obstacles(Obstacle.FENCE).filterPrecipice().subscribe(::onFence)
+    Detector.obstacles(Obstacle.STABLE).filterPrecipice().subscribe(::onTree)
+    Detector.obstacles(Obstacle.ANIMAL).filterPrecipice().subscribe(::onAnimal)
+    Detector.obstacles(Obstacle.ROBOT).filterPrecipice().subscribe { onRobot() }
+
+    Detector.detections.filter { it == Detector.DetectionType.ROBOT }.subscribe { onRobot() }
+    Detector.detections.filter { it == Detector.DetectionType.PRECIPICE }.subscribe { onPrecipice() }
+    Detector.obstacles.filter { it.possibleObstacles.size > 2 }.subscribe(::onInconclusiveObstacle)
+}
+
+fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
+    if (obstacleInfo.isObstacle(Obstacle.TREE) && obstacleInfo.isObstacle(Obstacle.FENCE)
+            && obstacleInfo.possibleObstacles.size == 2) {
     }
+
+    if (obstacleInfo.areObstacles(Obstacle.FEED, Obstacle.FEED_OPPONENT)) {
+        FeederRobot.mode = Mode.MOVING_SLOWLY
+    }
+
+    Detector.detectionMode = Detector.DetectionMode.SEARCH_OBSTACLE_COLOR
 }
 
 private fun onPrecipice() {
@@ -106,12 +93,12 @@ fun onRobot() {
     FeederRobot.avoidObstacle()
 }
 
-fun onOpponentStable() {
+fun onOpponentStable(obstacleInfo: ObstacleInfo) {
     printStatusOf("onOpponentStable")
     FeederRobot.avoidObstacle()
 }
 
-fun onStable() {
+fun onStable(obstacleInfo: ObstacleInfo) {
     printStatusOf("onStable")
     if (FeederRobot.searchMode == SearchMode.STABLE) {
         FeederRobot.stopRobot()
@@ -121,13 +108,13 @@ fun onStable() {
     }
 }
 
-fun onOpponentFeed() {
+fun onOpponentFeed(obstacleInfo: ObstacleInfo) {
     printStatusOf("onOpponentFeed")
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
 }
 
-fun onFeed() {
+fun onFeed(obstacleInfo: ObstacleInfo) {
     printStatusOf("onFeed")
     if (FeederRobot.searchMode == SearchMode.FEED) {
         FeederRobot.stopRobot()
@@ -138,19 +125,19 @@ fun onFeed() {
     }
 }
 
-fun onAnimal() {
+fun onAnimal(obstacleInfo: ObstacleInfo) {
     printStatusOf("onAnimal")
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
 }
 
-fun onTree() {
+fun onTree(obstacleInfo: ObstacleInfo) {
     printStatusOf("onTree")
     FeederRobot.stopRobot(1000)
     // TODO crash into tree
 }
 
-fun onFence() {
+fun onFence(obstacleInfo: ObstacleInfo) {
     printStatusOf("onFence")
     FeederRobot.stopRobot(1000)
     // demolish
@@ -159,7 +146,10 @@ fun onFence() {
 fun printStatusOf(funName: String) = logger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
-        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" /*+
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
+        "| detection=${Detector.detections.last(null).blockingGet().name}" +
+        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}"
+        /*+
         "| animalType=${FeederRobot.animalType.name}"*/)
 
 fun testDetector() {

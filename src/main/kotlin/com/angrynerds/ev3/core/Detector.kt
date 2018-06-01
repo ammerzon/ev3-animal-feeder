@@ -1,9 +1,11 @@
 package com.angrynerds.ev3.core
 
+import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
 import com.angrynerds.ev3.logger
 import com.angrynerds.ev3.util.Constants
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -18,6 +20,14 @@ object Detector {
     val detections = detectionSubject
             .doOnSubscribe { start() }
             .doOnDispose{ subscribers.clear() }!!
+
+    val obstacles = detections.filter { it == DetectionType.OBSTACLE }.map { currentObstacleInfo!! }!!
+
+    fun obstacles(obstacleType: Obstacle): Observable<ObstacleInfo> {
+        return obstacles.filter {
+            it.isObstacle(obstacleType, true)
+        }
+    }
 
     var currentObstacleInfo: ObstacleInfo? = null
     var detectionMode = DetectionMode.DEFAULT
@@ -75,7 +85,7 @@ object Detector {
             return
         }
 
-        if(obstacleInfo.isRobot())
+        if (obstacleInfo.isObstacle(Obstacle.ROBOT, true))
             emitDetection(DetectionType.ROBOT)
         else
             emitDetection(DetectionType.OBSTACLE)
