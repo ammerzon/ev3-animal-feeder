@@ -93,33 +93,33 @@ class ObstacleInfo {
     }
 
     fun isTree(): Boolean {
-        return colors.contains(Constants.ObstacleCheck.TREE_COLOR)
+        return isColorPossible(Constants.ObstacleCheck.TREE_COLOR)
             && isHeightInRange(Constants.ObstacleCheck.TREE_HEIGHT)
     }
 
     fun isAnimal(): Boolean {
-        return colors.any {
+        return (colors.isEmpty() || colors.any {
             !Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(it)
-        } && isHeightInRange(Constants.ObstacleCheck.ANIMAL_HEIGHT)
+        }) && isHeightInRange(Constants.ObstacleCheck.ANIMAL_HEIGHT)
     }
 
     fun isMyFeed(): Boolean {
-        return colors.contains(Config.myFeedColor) &&
+        return isColorPossible(Config.myFeedColor) &&
                 Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     fun isOpponentFeed(): Boolean {
-        return colors.contains(Config.opponentFeedColor) &&
+        return isColorPossible(Config.opponentFeedColor) &&
                 Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     fun isMyStable(): Boolean {
-        return colors.contains(Config.stableColor) &&
+        return isColorPossible(Config.stableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
     fun isOpponentStable(): Boolean {
-        return colors.contains(Config.opponentStableColor) &&
+        return isColorPossible(Config.opponentStableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
@@ -134,6 +134,10 @@ class ObstacleInfo {
 
     private fun isHeightInRange(range: ClosedFloatingPointRange<Float>): Boolean {
         return (minHeight in range) || (maxHeight in range)
+    }
+
+    private fun isColorPossible(color: ColorId): Boolean {
+        return colors.isEmpty() || colors.contains(color)
     }
 
     companion object {

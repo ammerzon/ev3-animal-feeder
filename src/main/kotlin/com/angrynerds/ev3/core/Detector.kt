@@ -66,7 +66,7 @@ object Detector {
             return
 
         val obstacleInfo = ensureObstacleDetection()
-        obstacleInfo.detectedHeight(height)
+        obstacleInfo.onSensorDetectedHeight(height)
 
         if(!obstacleInfo.anyObstaclePossible()) {
             // no obstacle (table height detected)
@@ -84,6 +84,18 @@ object Detector {
     private fun onColor(colorId: ColorId) {
         if(detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
             return
+
+        val obstacleInfo = ensureObstacleDetection()
+        obstacleInfo.onSensorDetectedColor(colorId)
+
+        if(!obstacleInfo.anyObstaclePossible()) {
+            // no obstacle (table height detected)
+            endObstacleDetection()
+            emitDetection(DetectionType.NOTHING)
+            return
+        }
+
+        emitDetection(DetectionType.OBSTACLE)
     }
 
     private fun onDistance(distance: Float) {
