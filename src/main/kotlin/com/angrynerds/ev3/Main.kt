@@ -66,8 +66,8 @@ fun runRobot() {
     Detector.obstacles(Obstacle.ANIMAL).withoutAvoidingPrecipice().subscribe(::onAnimal)
     Detector.obstacles(Obstacle.ROBOT).withoutAvoidingPrecipice().subscribe { onRobot() }
 
-    Detector.detectionSubject.filter { it == Detector.DetectionType.ROBOT }.subscribe { onRobot() }
-    Detector.detectionSubject.filter { it == Detector.DetectionType.PRECIPICE }.subscribe { onPrecipice() }
+    Detector.detectionSubject.filter { it == DetectionType.ROBOT }.subscribe { onRobot() }
+    Detector.detectionSubject.filter { it == DetectionType.PRECIPICE }.subscribe { onPrecipice() }
     Detector.obstacles.filter { it.possibleObstacles.size > 2 }.subscribe(::onInconclusiveObstacle)
     Detector.start()
 }
@@ -78,11 +78,11 @@ fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
     }
 
     if (obstacleInfo.areObstacles(Obstacle.FEED, Obstacle.FEED_OPPONENT)) {
-        FeederRobot.mode = Mode.MOVING_SLOWLY
+        FeederRobot.mode = Mode.MOVING
         FeederRobot.movePilot.linearSpeed = Constants.Movement.SLOW_SPEED
+        FeederRobot.moveRobot()
     }
 
-    Detector.detectionMode = Detector.DetectionMode.SEARCH_OBSTACLE_COLOR
     // detector subscribers should be notified with unambiguous obstacles
 }
 
@@ -140,15 +140,9 @@ fun onAnimal(obstacleInfo: ObstacleInfo) {
 fun onTree(obstacleInfo: ObstacleInfo) {
     printStatusOf("onTree")
     FeederRobot.stopRobot(1000)
-    val modeBefore: Mode = FeederRobot.mode
-    val speedBefore = FeederRobot.movePilot.linearSpeed
 
-    FeederRobot.mode = Mode.MOVING_SLOWLY
-    FeederRobot.movePilot.linearSpeed = Constants.Movement.HIGH_SPEED
-    FeederRobot.moveRobot(50.0) // TODO adjust value
-
-    FeederRobot.movePilot.linearSpeed = speedBefore
-    FeederRobot.mode = modeBefore
+    FeederRobot.moveRobotByDistance(50.0, false,
+            Constants.Movement.HIGH_SPEED) // TODO adjust value
 }
 
 fun onFence(obstacleInfo: ObstacleInfo) {
@@ -161,7 +155,7 @@ fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
-fun printStatusOf(funName: String, detectionType: Detector.DetectionType) = rootLogger.info("$funName: " +
+fun printStatusOf(funName: String, detectionType: DetectionType) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
@@ -216,7 +210,7 @@ fun configureFeederRobot() {
     rootLogger.info("Robot calibration started")
     var shouldQuit = false
 
-    do {
+    /*do {
         println("Put color before the sensor and press a button...")
         Button.waitForAnyPress()
         val colorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
@@ -241,9 +235,9 @@ fun configureFeederRobot() {
             println("Couldn't find any valid feed color (${Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR.name}| " +
                     "${Constants.ObstacleCheck.I_AAH_FEED_COLOR.name})")
         }
-    } while (!shouldQuit)
+    } while (!shouldQuit)*/
 
-
+    FeederRobot.feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
     rootLogger.info("Animal type: " + FeederRobot.animalType)
     rootLogger.info("Feed color: " + FeederRobot.feedColor)
     rootLogger.info("Stable color: " + FeederRobot.stableColor)

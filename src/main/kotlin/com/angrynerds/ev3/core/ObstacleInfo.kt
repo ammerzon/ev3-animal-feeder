@@ -24,20 +24,33 @@ class ObstacleInfo {
         updatePossibleObstacles()
     }
 
-    private fun detectedHeightRange(minHeight: Float, maxHeight: Float) {
-        if (minHeight < this.minHeight)
+    private fun detectedHeightRange(minHeight: Float, maxHeight: Float, extend: Boolean = false) {
+        if (!extend || minHeight < this.minHeight)
             this.minHeight = minHeight
-        if (maxHeight > this.maxHeight)
+        if (!extend || maxHeight > this.maxHeight)
             this.maxHeight = maxHeight
 
         updatePossibleObstacles()
     }
 
-    fun onSensorDetectedHeight(height: Float) {
-        detectedHeightRange(height - HEIGHT_TOLERANCE, height + HEIGHT_TOLERANCE)
+    fun onSensorDetectedHeight(height: Float, extend: Boolean = false) {
+        detectedHeightRange(height - HEIGHT_TOLERANCE, height + HEIGHT_TOLERANCE, extend)
     }
 
     fun onSensorDetectedColorVertical(color: ColorId) {
+        detectedColorVertical(color)
+    }
+
+    fun onSensorDetectedColorForward(color: ColorId) {
+        detectedColorHorizontal(color)
+    }
+
+    private fun detectedColorVertical(color: ColorId, extend: Boolean = false) {
+        if (!extend) {
+            colorsVertical = arrayOf(color)
+            return
+        }
+
         if (colorsVertical.contains(color))
             return
         colorsVertical += color
@@ -45,7 +58,12 @@ class ObstacleInfo {
         updatePossibleObstacles()
     }
 
-    fun onSensorDetectedColorForward(color: ColorId) {
+    private fun detectedColorHorizontal(color: ColorId, extend: Boolean = false) {
+        if (!extend) {
+            colorsForward = arrayOf(color)
+            return
+        }
+
         if (colorsForward.contains(color))
             return
         colorsForward += color

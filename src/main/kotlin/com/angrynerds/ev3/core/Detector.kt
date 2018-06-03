@@ -1,6 +1,8 @@
 package com.angrynerds.ev3.core
 
 import com.angrynerds.ev3.debug.EV3LogHandler
+import com.angrynerds.ev3.enums.DetectionMode
+import com.angrynerds.ev3.enums.DetectionType
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
@@ -66,6 +68,7 @@ object Detector {
     }
 
     private fun onHeight(height: Float) {
+        logger.info("height: " + height)
         if (height < -10) {
             onPrecipice()
             return
@@ -100,9 +103,11 @@ object Detector {
     }
 
     private fun onUltrasonicSensor(distance: Float) {
-        val distanceInCm = getCmFromUSValue(distance)
-        val height = FeederRobot.gripperArmPosition.height - distanceInCm
-        onHeight(height)
+        if (distance.isFinite()) {
+            val distanceInCm = getCmFromUSValue(distance)
+            val height = FeederRobot.gripperArmPosition.height - distanceInCm
+            onHeight(height)
+        }
     }
 
     private fun onInfraredSensor(distance: Float) {
@@ -153,16 +158,10 @@ object Detector {
     }
 
     private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
+        logger.info("PRE emitDetection: " + detectionType)
         if (!force && detectionMode == DetectionMode.IGNORE)
             return
         detectionSubject.onNext(detectionType)
-    }
-
-    enum class DetectionMode {
-        DEFAULT, SEARCH_OBSTACLE_HEIGHT, SEARCH_OBSTACLE_COLOR, IGNORE
-    }
-
-    enum class DetectionType {
-        PRECIPICE, OBSTACLE, NOTHING, ROBOT
+        logger.info("POST emitDetection: " + detectionType)
     }
 }

@@ -70,42 +70,47 @@ object FeederRobot {
         devices.forEach(Device::close)
     }
 
-    fun moveRobot() {
-        FeederRobot.mode = Mode.MOVING
-        FeederRobot.movePilot.forward()
+    fun moveRobot(speed: Double = Constants.Movement.DEFAULT_SPEED) {
+        mode = Mode.MOVING
+        movePilot.linearSpeed = speed
+        movePilot.forward()
     }
 
     fun stopRobot(delayAfter: Long = 0) {
-        FeederRobot.movePilot.stop()
-        FeederRobot.mode = Mode.HALTING
+        movePilot.stop()
+        mode = Mode.HALTING
         //Thread.sleep(delayAfter)
     }
 
     fun rotateRobot(angle: Double) {
         val modeBefore: Mode = FeederRobot.mode
-        FeederRobot.mode = Mode.ROTATING
-        FeederRobot.movePilot.rotate(angle)
-        FeederRobot.mode = modeBefore
+        mode = Mode.ROTATING
+        movePilot.rotate(angle)
+        mode = modeBefore
     }
 
-    fun moveRobot(distance: Double, immediateReturn: Boolean = false) {
+    fun moveRobotByDistance(distance: Double, immediateReturn: Boolean = false,
+                            speed: Double = Constants.Movement.DEFAULT_SPEED) {
         val modeBefore: Mode = FeederRobot.mode
-        FeederRobot.mode = Mode.MOVING
-        FeederRobot.movePilot.travel(distance, immediateReturn)
-        FeederRobot.mode = modeBefore
+        val speedBefore = FeederRobot.movePilot.linearSpeed
+        mode = Mode.MOVING
+        movePilot.linearSpeed = speed
+        movePilot.travel(distance, immediateReturn)
+        mode = modeBefore
+        FeederRobot.movePilot.linearSpeed = speedBefore
     }
 
     fun turnAround(moveAfterTurn: Boolean = true, delayAfterRotation: Long = 0) {
-        FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
-        FeederRobot.rotateRobot(Constants.PrecipiceDetection.ROTATION_ANGLE)
+        moveRobotByDistance(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+        rotateRobot(Constants.PrecipiceDetection.ROTATION_ANGLE)
         //Thread.sleep(delayAfterRotation)
-        if (moveAfterTurn) FeederRobot.moveRobot()
+        if (moveAfterTurn) moveRobot()
     }
 
     fun avoidObstacle(delayAfterRotation: Long = 0) {
-        FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
-        FeederRobot.rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
+        moveRobotByDistance(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+        rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
         //Thread.sleep(delayAfterRotation)
-        FeederRobot.moveRobot()
+        moveRobot()
     }
 }
