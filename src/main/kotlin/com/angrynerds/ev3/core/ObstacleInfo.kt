@@ -127,13 +127,13 @@ class ObstacleInfo {
     }
 
     private fun isMyFeed(): Boolean {
-        return isColorForwardPossible(FeederRobot.feedColor)
-        // && Constants.ObstacleCheck.FEED_HEIGHT in heightRange
+        return isColorForwardPossible(FeederRobot.feedColor) &&
+                Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isOpponentFeed(): Boolean {
-        return isColorForwardPossible(FeederRobot.opponentFeedColor)
-        // && Constants.ObstacleCheck.FEED_HEIGHT in heightRange
+        return isColorForwardPossible(FeederRobot.opponentFeedColor) &&
+                Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isMyStable(): Boolean {
