@@ -9,6 +9,7 @@ import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import lejos.hardware.Button
 import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
@@ -53,9 +54,9 @@ fun Observable<ObstacleInfo>.withoutAvoidingPrecipice(): Observable<ObstacleInfo
 }
 
 fun runRobot() {
-    FeederRobot.mode = Mode.MOVING  // need it?
+    FeederRobot.mode = Mode.MOVING
 
-    Detector.detections.subscribe { printStatusOf("detector") }
+    Detector.detectionSubject.subscribe { printStatusOf("detector", it) }
 
     Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onStable)
     Detector.obstacles(Obstacle.STABLE_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentStable)
@@ -66,9 +67,10 @@ fun runRobot() {
     Detector.obstacles(Obstacle.ANIMAL).withoutAvoidingPrecipice().subscribe(::onAnimal)
     Detector.obstacles(Obstacle.ROBOT).withoutAvoidingPrecipice().subscribe { onRobot() }
 
-    Detector.detections.filter { it == Detector.DetectionType.ROBOT }.subscribe { onRobot() }
-    Detector.detections.filter { it == Detector.DetectionType.PRECIPICE }.subscribe { onPrecipice() }
+    Detector.detectionSubject.filter { it == Detector.DetectionType.ROBOT }.subscribe { onRobot() }
+    Detector.detectionSubject.filter { it == Detector.DetectionType.PRECIPICE }.subscribe { onPrecipice() }
     Detector.obstacles.filter { it.possibleObstacles.size > 2 }.subscribe(::onInconclusiveObstacle)
+    Detector.start()
 }
 
 fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
@@ -160,13 +162,19 @@ fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
-        "| detection=${Detector.detections.last(null).blockingGet().name}" +
+        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
+
+fun printStatusOf(funName: String, detectionType: Detector.DetectionType) = rootLogger.info("$funName: " +
+        "| searchMode=${FeederRobot.searchMode.name} " +
+        "| mode=${FeederRobot.mode.name} " +
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
+        "| detectionType=${detectionType}" +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
 fun testDetector() {
     rootLogger.info("Detecting...")
 
-    Detector.detections.subscribe {
+    Detector.detectionSubject.subscribe {
         rootLogger.info("detected: $it")
     }
 

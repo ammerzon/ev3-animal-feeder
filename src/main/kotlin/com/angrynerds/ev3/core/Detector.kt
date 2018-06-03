@@ -7,8 +7,7 @@ import com.angrynerds.ev3.extensions.getCmFromUSValue
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.AsyncSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.subjects.PublishSubject
 import lejos.sensors.ColorId
 import java.util.concurrent.TimeUnit
 import java.util.logging.LogManager
@@ -16,14 +15,10 @@ import java.util.logging.Logger
 
 object Detector {
     private var logger = Logger.getLogger("detector")
-    private val detectionSubject: Subject<DetectionType> = AsyncSubject.create()
+    val detectionSubject: PublishSubject<DetectionType> = PublishSubject.create()
     private val subscribers = CompositeDisposable()
 
-    val detections = detectionSubject
-            .doOnSubscribe { start() }
-            .doOnDispose { subscribers.clear() }!!
-
-    val obstacles = detections.filter { it == DetectionType.OBSTACLE }.map { currentObstacleInfo!! }!!
+    val obstacles = detectionSubject.filter { it == DetectionType.OBSTACLE }.map { currentObstacleInfo!! }!!
 
     fun obstacles(obstacleType: Obstacle): Observable<ObstacleInfo> {
         return obstacles.filter {
@@ -34,7 +29,7 @@ object Detector {
     var currentObstacleInfo: ObstacleInfo? = null
     var detectionMode = DetectionMode.DEFAULT
 
-    private fun start() {
+    fun start() {
         logger = LogManager.getLogManager().getLogger("detector")
         logger.addHandler(EV3LogHandler())
         logger.info("Start detecting")

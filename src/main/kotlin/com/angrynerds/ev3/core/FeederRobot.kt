@@ -78,7 +78,7 @@ object FeederRobot {
     fun stopRobot(delayAfter: Long = 0) {
         FeederRobot.movePilot.stop()
         FeederRobot.mode = Mode.HALTING
-        Thread.sleep(delayAfter)
+        //Thread.sleep(delayAfter)
     }
 
     fun rotateRobot(angle: Double) {
@@ -98,14 +98,14 @@ object FeederRobot {
     fun turnAround(moveAfterTurn: Boolean = true, delayAfterRotation: Long = 0) {
         FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
         FeederRobot.rotateRobot(Constants.PrecipiceDetection.ROTATION_ANGLE)
-        Thread.sleep(delayAfterRotation)
+        //Thread.sleep(delayAfterRotation)
         if (moveAfterTurn) FeederRobot.moveRobot()
     }
 
     fun avoidObstacle(delayAfterRotation: Long = 0) {
         FeederRobot.moveRobot(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
         FeederRobot.rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
-        Thread.sleep(delayAfterRotation)
+        //Thread.sleep(delayAfterRotation)
         FeederRobot.moveRobot()
     }
 }
