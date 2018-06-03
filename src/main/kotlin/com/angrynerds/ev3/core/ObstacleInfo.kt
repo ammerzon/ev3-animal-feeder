@@ -73,6 +73,7 @@ class ObstacleInfo {
 
     fun anyObstaclePossible(): Boolean {
         return maxHeight >= Constants.ObstacleCheck.FEED_HEIGHT
+                || (colorsForward.any { it != ColorId.NONE })
     }
 
     private fun updatePossibleObstacles() {
@@ -155,15 +156,15 @@ class ObstacleInfo {
         return maxHeight > Constants.ObstacleCheck.ROBOT_DETECTION_MIN_HEIGHT
     }
 
-    private fun isHeightInRange(range: ClosedFloatingPointRange<Float>): Boolean {
+    fun isHeightInRange(range: ClosedFloatingPointRange<Float>): Boolean {
         return (minHeight in range) || (maxHeight in range)
     }
 
-    private fun isColorForwardPossible(color: ColorId): Boolean {
+    fun isColorForwardPossible(color: ColorId): Boolean {
         return colorsForward.isEmpty() || colorsForward.contains(color)
     }
 
-    private fun isColorVerticalPossible(color: ColorId): Boolean {
+    fun isColorVerticalPossible(color: ColorId): Boolean {
         return colorsVertical.isEmpty() || colorsVertical.contains(color)
     }
 
