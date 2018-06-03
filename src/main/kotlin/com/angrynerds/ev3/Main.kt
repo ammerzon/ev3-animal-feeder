@@ -4,6 +4,7 @@ import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.ObstacleInfo
 import com.angrynerds.ev3.core.RxFeederRobot
+import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
@@ -13,14 +14,19 @@ import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
 import lejos.sensors.ColorId
 import java.io.File
+import java.util.logging.LogManager
 import java.util.logging.Logger
 
-val logger = Logger.getLogger("main")
+var rootLogger = Logger.getLogger("main")
 val compositeSubscription = CompositeDisposable()
 
 fun main(args: Array<String>) {
 
-    logger.info("Animal feeder started")
+    LogManager.getLogManager().reset()
+    rootLogger = LogManager.getLogManager().getLogger("main")
+    rootLogger.addHandler(EV3LogHandler())
+
+    rootLogger.info("Animal feeder started")
     openConnections()
     resetToInitialState()
 
@@ -150,7 +156,7 @@ fun onFence(obstacleInfo: ObstacleInfo) {
     // TODO what is demolish fence?
 }
 
-fun printStatusOf(funName: String) = logger.info("$funName: " +
+fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
@@ -158,10 +164,10 @@ fun printStatusOf(funName: String) = logger.info("$funName: " +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
 fun testDetector() {
-    logger.info("Detecting...")
+    rootLogger.info("Detecting...")
 
     Detector.detections.subscribe {
-        logger.info("detected: $it")
+        rootLogger.info("detected: $it")
     }
 
     Button.waitForAnyPress()
@@ -171,7 +177,7 @@ fun testDetector() {
  * Moves the gripper arm to the position [GripperArmPosition.BOTTOM_OPEN].
  */
 fun resetToInitialState() {
-    logger.info("Resetting to initial state")
+    rootLogger.info("Resetting to initial state")
     var isMovingUpwards = true
     FeederRobot.grabMotor.speed = Constants.Reset.SPEED
 
@@ -202,7 +208,7 @@ fun resetToInitialState() {
  * Read the horizontal color sensor value and sets [FeederRobot.animalType].
  */
 fun configureFeederRobot() {
-    logger.info("Robot calibration started")
+    rootLogger.info("Robot calibration started")
     var shouldQuit = false
 
     do {
@@ -221,7 +227,7 @@ fun configureFeederRobot() {
                 FeederRobot.feedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
             }
 
-            println("Press escape to reread color. Any other button to continue")
+            println("Press escape to reread color. Any other button to continue.")
             if (Button.waitForAnyPress() != Button.ID_ESCAPE) {
                 shouldQuit = true
             }
@@ -233,16 +239,16 @@ fun configureFeederRobot() {
     } while (!shouldQuit)
 
 
-    logger.info("Animal type: " + FeederRobot.animalType)
-    logger.info("Feed color: " + FeederRobot.feedColor)
-    logger.info("Stable color: " + FeederRobot.stableColor)
+    rootLogger.info("Animal type: " + FeederRobot.animalType)
+    rootLogger.info("Feed color: " + FeederRobot.feedColor)
+    rootLogger.info("Stable color: " + FeederRobot.stableColor)
 }
 
 /**
  * Opens all motor ports and sensor ports and creates the sensor observables.
  */
 fun openConnections() {
-    logger.info("Opening connections")
+    rootLogger.info("Opening connections")
     FeederRobot.grabMotor
     RxFeederRobot.rxUltrasonicSensor
 }

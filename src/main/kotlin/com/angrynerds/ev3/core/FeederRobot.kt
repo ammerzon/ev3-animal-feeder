@@ -70,7 +70,6 @@ object FeederRobot {
         devices.forEach(Device::close)
     }
 
-
     fun moveRobot() {
         FeederRobot.mode = Mode.MOVING
         FeederRobot.movePilot.forward()

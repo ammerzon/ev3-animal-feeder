@@ -1,20 +1,22 @@
 package com.angrynerds.ev3.core
 
+import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
-import com.angrynerds.ev3.logger
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.Subject
 import lejos.sensors.ColorId
-import java.util.concurrent.TimeUnit
+import java.util.logging.LogManager
+import java.util.logging.Logger
 
+var logger = Logger.getLogger("detector")
 
 object Detector {
-    private val detectionSubject: Subject<DetectionType> = PublishSubject.create()
+    private val detectionSubject: Subject<DetectionType> = AsyncSubject.create()
     private val subscribers = CompositeDisposable()
 
     val detections = detectionSubject
@@ -33,16 +35,14 @@ object Detector {
     var detectionMode = DetectionMode.DEFAULT
 
     private fun start() {
-        logger.info("start detecting")
+        logger = LogManager.getLogManager().getLogger("detector")
+        logger.addHandler(EV3LogHandler())
+        logger.info("Start detecting")
         val timeout = 500L //ms
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
-                .timeout(timeout, TimeUnit.MILLISECONDS)
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
-                .timeout(timeout, TimeUnit.MILLISECONDS)
         val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-                .timeout(timeout, TimeUnit.MILLISECONDS)
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
-                .timeout(timeout, TimeUnit.MILLISECONDS)
 
         subscribers.addAll(
                 ultrasonicObservable.subscribe(::onUltrasonicSensor),
