@@ -10,12 +10,12 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.Subject
 import lejos.sensors.ColorId
+import java.util.concurrent.TimeUnit
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
-var logger = Logger.getLogger("detector")
-
 object Detector {
+    private var logger = Logger.getLogger("detector")
     private val detectionSubject: Subject<DetectionType> = AsyncSubject.create()
     private val subscribers = CompositeDisposable()
 
@@ -40,9 +40,13 @@ object Detector {
         logger.info("Start detecting")
         val timeout = 500L //ms
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
+                .debounce(timeout, TimeUnit.MILLISECONDS)
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
+                .debounce(timeout, TimeUnit.MILLISECONDS)
         val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
+                .debounce(timeout, TimeUnit.MILLISECONDS)
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
+                .debounce(timeout, TimeUnit.MILLISECONDS)
 
         subscribers.addAll(
                 ultrasonicObservable.subscribe(::onUltrasonicSensor),
@@ -67,6 +71,7 @@ object Detector {
     }
 
     private fun onHeight(height: Float) {
+        logger.info("Height" + height)
         if (height < -10) {
             onPrecipice()
             return
