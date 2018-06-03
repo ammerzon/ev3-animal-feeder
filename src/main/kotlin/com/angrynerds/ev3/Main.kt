@@ -9,7 +9,6 @@ import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import lejos.hardware.Button
 import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
@@ -154,8 +153,6 @@ fun onTree(obstacleInfo: ObstacleInfo) {
 
 fun onFence(obstacleInfo: ObstacleInfo) {
     printStatusOf("onFence")
-    FeederRobot.stopRobot(1000)
-    // TODO what is demolish fence?
 }
 
 fun printStatusOf(funName: String) = rootLogger.info("$funName: " +

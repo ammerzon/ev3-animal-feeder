@@ -90,23 +90,6 @@ object Detector {
             emitDetection(DetectionType.OBSTACLE)
     }
 
-    private fun onColor(colorId: ColorId) {
-        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
-            return
-
-        val obstacleInfo = ensureObstacleDetection()
-        obstacleInfo.onSensorDetectedColor(colorId)
-
-        if (!obstacleInfo.anyObstaclePossible()) {
-            // no obstacle (table height detected)
-            endObstacleDetection()
-            emitDetection(DetectionType.NOTHING)
-            return
-        }
-
-        emitDetection(DetectionType.OBSTACLE)
-    }
-
     private fun onDistance(distance: Float) {
         if (distance <= Constants.ObstacleCheck.ROBOT_DETECTION_MAX_DISTANCE)
             emitDetection(DetectionType.ROBOT)
@@ -128,11 +111,45 @@ object Detector {
     }
 
     private fun onForwardColorSensor(color: ColorId) {
-        onColor(color)
+        onForwardColor(color)
     }
 
     private fun onVerticalColorSensor(color: ColorId) {
-        onColor(color)
+        onVerticalColor(color)
+    }
+
+    private fun onForwardColor(colorId: ColorId) {
+        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
+            return
+
+        val obstacleInfo = ensureObstacleDetection()
+        obstacleInfo.onSensorDetectedColorForward(colorId)
+
+        if (!obstacleInfo.anyObstaclePossible()) {
+            // no obstacle (table height detected)
+            endObstacleDetection()
+            emitDetection(DetectionType.NOTHING)
+            return
+        }
+
+        emitDetection(DetectionType.OBSTACLE)
+    }
+
+    private fun onVerticalColor(colorId: ColorId) {
+        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
+            return
+
+        val obstacleInfo = ensureObstacleDetection()
+        obstacleInfo.onSensorDetectedColorVertical(colorId)
+
+        if (!obstacleInfo.anyObstaclePossible()) {
+            // no obstacle (table height detected)
+            endObstacleDetection()
+            emitDetection(DetectionType.NOTHING)
+            return
+        }
+
+        emitDetection(DetectionType.OBSTACLE)
     }
 
     private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
