@@ -4,19 +4,18 @@ import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.ObstacleInfo
 import com.angrynerds.ev3.core.RxFeederRobot
-import com.angrynerds.ev3.enums.GripperArmPosition
-import com.angrynerds.ev3.enums.Mode
-import com.angrynerds.ev3.enums.Obstacle
-import com.angrynerds.ev3.enums.SearchMode
+import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.util.Constants
-import com.angrynerds.ev3.util.standardOutClear
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
+import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
+import lejos.sensors.ColorId
+import java.io.File
 import java.util.logging.Logger
 
-val logger = Logger.getLogger("main")!!
+val logger = Logger.getLogger("main")
 val compositeSubscription = CompositeDisposable()
 
 fun main(args: Array<String>) {
@@ -25,22 +24,20 @@ fun main(args: Array<String>) {
     openConnections()
     resetToInitialState()
 
-    logger.info("Press a button to calibrate the robot...")
+    println("Press a button to calibrate the robot...")
     Button.waitForAnyPress()
-    //calibrateRobot()
+    configureFeederRobot()
 
-    logger.info("Press a button to start execution...")
+    println("Press a button to start execution...")
     Button.waitForAnyPress()
 
     // Exec
-    //testDetector()
+    // testDetector()
 
+    LCD.clear()
     runRobot()
 
-    standardOutClear();
-    LCD.clear()
-
-    logger.info("Press a button to close the program...")
+    println("Press a button to close the program...")
     Button.waitForAnyPress()
     FeederRobot.close()
 }
@@ -170,21 +167,36 @@ fun testDetector() {
     Button.waitForAnyPress()
 }
 
+/**
+ * Moves the gripper arm to the position [GripperArmPosition.BOTTOM_OPEN].
+ */
 fun resetToInitialState() {
     logger.info("Resetting to initial state")
+    var isMovingUpwards = true
+    FeederRobot.grabMotor.speed = Constants.Reset.SPEED
+
     val disposable = RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
+        println(distance)
         if (distance.isFinite()) {
-            if (distance in Constants.Reset.ULTRASONIC_GRABBER_DOWN) {
-                FeederRobot.grabMotor.stop()
-                FeederRobot.gripperArmPosition = GripperArmPosition.BOTTOM_CLOSED
-                moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
-                compositeSubscription.clear()
+            if (isMovingUpwards) {
+                if (distance > Constants.Reset.ULTRASONIC_GRABBER_DOWN.endInclusive) {
+                    FeederRobot.grabMotor.stop()
+                    isMovingUpwards = false
+                    FeederRobot.grabMotor.backward()
+                }
+            } else {
+                if (distance in Constants.Reset.ULTRASONIC_GRABBER_DOWN) {
+                    FeederRobot.grabMotor.stop()
+                    FeederRobot.gripperArmPosition = GripperArmPosition.BOTTOM_CLOSED
+                    moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+                    compositeSubscription.clear()
+                }
             }
         }
     }
+
     compositeSubscription.add(disposable)
-    FeederRobot.grabMotor.speed = Constants.Reset.SPEED
-    FeederRobot.grabMotor.backward()
+    FeederRobot.grabMotor.forward()
 }
 
 fun calibrateRobot() {
