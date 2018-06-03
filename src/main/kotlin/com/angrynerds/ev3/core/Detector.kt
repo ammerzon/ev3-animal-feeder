@@ -71,7 +71,6 @@ object Detector {
     }
 
     private fun onHeight(height: Float) {
-        logger.info("Height" + height)
         if (height < -10) {
             onPrecipice()
             return
@@ -123,7 +122,6 @@ object Detector {
     }
 
     private fun onUltrasonicSensor(distance: Float) {
-        logger.info("us value received")
         val distanceInCm = getCmFromUSValue(distance)
         val height = FeederRobot.gripperArmPosition.height - distanceInCm
         onHeight(height)
@@ -143,7 +141,7 @@ object Detector {
     }
 
     private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
-        if (!force || detectionMode == DetectionMode.IGNORE)
+        if (!force && detectionMode == DetectionMode.IGNORE)
             return
         detectionSubject.onNext(detectionType)
     }
