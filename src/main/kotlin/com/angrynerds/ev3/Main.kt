@@ -199,32 +199,44 @@ fun resetToInitialState() {
     FeederRobot.grabMotor.forward()
 }
 
-fun calibrateRobot() {
+/**
+ * Read the horizontal color sensor value and sets [FeederRobot.animalType].
+ */
+fun configureFeederRobot() {
     logger.info("Robot calibration started")
     var shouldQuit = false
 
-//    println("Put reference color before the sensor and press a button...")
-//    Button.waitForAnyPress()
-//    val referenceColorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
-//    println("Reference color: ${referenceColorId.name}")
-//    do {
-//        println("Place another color before the sensor and press a button (escape to quit)...")
-//        if (Button.waitForAnyPress() != Button.ID_ESCAPE) {
-//            val forwardColorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
-//            if (referenceColorId == forwardColorId) {
-//                Sound.playSample(File(CRACK_KID.fileName))
-//            } else {
-//                Sound.playSample(File(ERROR.fileName))
-//            }
-//            println("Detected color: ${forwardColorId.name}")
-//        } else {
-//            shouldQuit = true
-//        }
-//    } while (!shouldQuit)
-//
-//    Config.init(FeederRobot.animalType)
+    do {
+        println("Put color before the sensor and press a button...")
+        Button.waitForAnyPress()
+        val colorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
+        println("Recognized color: ${colorId.name}")
+        if (colorId == Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR ||
+                colorId == Constants.ObstacleCheck.I_AAH_FEED_COLOR) {
+            if (colorId == Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR) {
+                Sound.playSample(File(SoundEffects.BEAR.fileName))
+                FeederRobot.feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
+
+            } else if (colorId == Constants.ObstacleCheck.I_AAH_FEED_COLOR) {
+                Sound.playSample(File(SoundEffects.DONKEY.fileName))
+                FeederRobot.feedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
+            }
+
+            println("Press escape to reread color. Any other button to continue")
+            if (Button.waitForAnyPress() != Button.ID_ESCAPE) {
+                shouldQuit = true
+            }
+        } else {
+            Sound.playSample(File(SoundEffects.ERROR.fileName))
+            println("Couldn't find any valid feed color (${Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR.name}| " +
+                    "${Constants.ObstacleCheck.I_AAH_FEED_COLOR.name})")
+        }
+    } while (!shouldQuit)
+
 
     logger.info("Animal type: " + FeederRobot.animalType)
+    logger.info("Feed color: " + FeederRobot.feedColor)
+    logger.info("Stable color: " + FeederRobot.stableColor)
 }
 
 /**
