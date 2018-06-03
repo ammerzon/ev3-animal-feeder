@@ -1,12 +1,12 @@
 package com.angrynerds.ev3.core
 
 import com.angrynerds.ev3.enums.Obstacle
+import com.angrynerds.ev3.util.Config
 import com.angrynerds.ev3.util.Constants
 import lejos.sensors.ColorId
 
 class ObstacleInfo {
-    var colorsVertical = emptyArray<ColorId>()
-    var colorsForward = emptyArray<ColorId>()
+    var colors = emptyArray<ColorId>()
 
     var minHeight: Float = 0f
     var maxHeight: Float = Float.POSITIVE_INFINITY
@@ -24,51 +24,29 @@ class ObstacleInfo {
         updatePossibleObstacles()
     }
 
-    private fun detectedHeightRange(minHeight: Float, maxHeight: Float, extend: Boolean = false) {
-        if (!extend || minHeight < this.minHeight)
+    private fun detectedHeightRange(minHeight: Float, maxHeight: Float) {
+        if (minHeight < this.minHeight)
             this.minHeight = minHeight
-        if (!extend || maxHeight > this.maxHeight)
+        if (maxHeight > this.maxHeight)
             this.maxHeight = maxHeight
 
         updatePossibleObstacles()
     }
 
-    fun onSensorDetectedHeight(height: Float, extend: Boolean = false) {
-        detectedHeightRange(height - HEIGHT_TOLERANCE, height + HEIGHT_TOLERANCE, extend)
-    }
-
-    fun onSensorDetectedColorVertical(color: ColorId) {
-        detectedColorVertical(color)
-    }
-
-    fun onSensorDetectedColorForward(color: ColorId) {
-        detectedColorHorizontal(color)
-    }
-
-    private fun detectedColorVertical(color: ColorId, extend: Boolean = false) {
-        if (!extend) {
-            colorsVertical = arrayOf(color)
+    private fun detectedColor(color: ColorId) {
+        if (colors.contains(color))
             return
-        }
-
-        if (colorsVertical.contains(color))
-            return
-        colorsVertical += color
+        colors += color
 
         updatePossibleObstacles()
     }
 
-    private fun detectedColorHorizontal(color: ColorId, extend: Boolean = false) {
-        if (!extend) {
-            colorsForward = arrayOf(color)
-            return
-        }
+    fun onSensorDetectedHeight(height: Float) {
+        detectedHeightRange(height - HEIGHT_TOLERANCE, height + HEIGHT_TOLERANCE)
+    }
 
-        if (colorsForward.contains(color))
-            return
-        colorsForward += color
-
-        updatePossibleObstacles()
+    fun onSensorDetectedColor(color: ColorId) {
+        detectedColor(color)
     }
 
     fun anyObstaclePossible(): Boolean {
@@ -116,33 +94,33 @@ class ObstacleInfo {
     }
 
     private fun isTree(): Boolean {
-        return isColorForwardPossible(Constants.ObstacleCheck.TREE_COLOR)   // TODO color sensor forward or vertical?
+        return isColorPossible(Constants.ObstacleCheck.TREE_COLOR)
                 && isHeightInRange(Constants.ObstacleCheck.TREE_HEIGHT)
     }
 
     private fun isAnimal(): Boolean {
-        return (colorsForward.isEmpty() || colorsForward.any {
+        return (colors.isEmpty() || colors.any {
             !Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(it)
         }) && isHeightInRange(Constants.ObstacleCheck.ANIMAL_HEIGHT)
     }
 
     private fun isMyFeed(): Boolean {
-        return isColorForwardPossible(FeederRobot.feedColor)
-        // && Constants.ObstacleCheck.FEED_HEIGHT in heightRange
+        return isColorPossible(Config.myFeedColor) &&
+                Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isOpponentFeed(): Boolean {
-        return isColorForwardPossible(FeederRobot.opponentFeedColor)
-        // && Constants.ObstacleCheck.FEED_HEIGHT in heightRange
+        return isColorPossible(Config.opponentFeedColor) &&
+                Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isMyStable(): Boolean {
-        return isColorVerticalPossible(FeederRobot.stableColor) &&
+        return isColorPossible(Config.stableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
     private fun isOpponentStable(): Boolean {
-        return isColorVerticalPossible(FeederRobot.opponentStableColor) &&
+        return isColorPossible(Config.opponentStableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
@@ -159,12 +137,8 @@ class ObstacleInfo {
         return (minHeight in range) || (maxHeight in range)
     }
 
-    private fun isColorForwardPossible(color: ColorId): Boolean {
-        return colorsForward.isEmpty() || colorsForward.contains(color)
-    }
-
-    private fun isColorVerticalPossible(color: ColorId): Boolean {
-        return colorsVertical.isEmpty() || colorsVertical.contains(color)
+    private fun isColorPossible(color: ColorId): Boolean {
+        return colors.isEmpty() || colors.contains(color)
     }
 
     companion object {
