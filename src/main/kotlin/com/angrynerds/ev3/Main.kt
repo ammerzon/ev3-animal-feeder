@@ -132,6 +132,7 @@ fun onFeed(obstacleInfo: ObstacleInfo) {
         // TODO: is here a delay necessary or is moveGripperArmTo blocking?
         moveGripperArmTo(GripperArmPosition.TOP)
         FeederRobot.searchMode = SearchMode.STABLE
+        FeederRobot.moveRobot()
     }
 }
 
