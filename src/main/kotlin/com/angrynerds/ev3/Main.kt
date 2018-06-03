@@ -11,6 +11,7 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.lcd.LCD
+import lejos.sensors.ColorId
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -50,8 +51,6 @@ fun Observable<ObstacleInfo>.withoutAvoidingPrecipice(): Observable<ObstacleInfo
 }
 
 fun runRobot() {
-    FeederRobot.mode = Mode.MOVING
-
     Detector.detectionSubject.subscribe { printStatusOf("detector", it) }
 
     Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onStable)
@@ -65,8 +64,10 @@ fun runRobot() {
 
     Detector.detectionSubject.filter { it == DetectionType.ROBOT }.subscribe { onRobot() }
     Detector.detectionSubject.filter { it == DetectionType.PRECIPICE }.subscribe { onPrecipice() }
-    Detector.obstacles.filter { it.possibleObstacles.size > 2 }.subscribe(::onInconclusiveObstacle)
+    Detector.obstacles.filter({ it.possibleObstacles.size > 2 }).subscribe(::onInconclusiveObstacle)
     Detector.start()
+
+    FeederRobot.moveRobot()
 }
 
 fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
@@ -147,7 +148,7 @@ fun onTree(obstacleInfo: ObstacleInfo) {
     FeederRobot.stopRobot(1000)
 
     FeederRobot.moveRobotByDistance(50.0, false,
-            Constants.Movement.HIGH_SPEED) // TODO adjust value
+            Constants.Movement.HIGH_SPEED)
 }
 
 fun onFence(obstacleInfo: ObstacleInfo) {
@@ -157,14 +158,14 @@ fun onFence(obstacleInfo: ObstacleInfo) {
 fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
-        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} " +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
 fun printStatusOf(funName: String, detectionType: DetectionType) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
         "| mode=${FeederRobot.mode.name} " +
-        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
-        "| detectionType=${detectionType}" +
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} " +
+        "| detectionType=$detectionType " +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
 fun testDetector() {

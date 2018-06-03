@@ -19,9 +19,8 @@ object Detector {
     val detectionSubject: PublishSubject<DetectionType> = PublishSubject.create()
     private val subscribers = CompositeDisposable()
 
-    val obstacles = detectionSubject.filter { it == DetectionType.OBSTACLE }
-            .filter { currentObstacleInfo != null }
-            .map { currentObstacleInfo!! }
+    val obstacles: Observable<ObstacleInfo> = detectionSubject.filter { it == DetectionType.OBSTACLE }
+            .filter { currentObstacleInfo != null }.map { currentObstacleInfo }
 
     fun obstacles(obstacleType: Obstacle): Observable<ObstacleInfo> {
         return obstacles.filter {

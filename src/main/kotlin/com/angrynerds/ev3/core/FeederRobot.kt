@@ -4,6 +4,7 @@ import com.angrynerds.ev3.enums.AnimalType
 import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Mode
 import com.angrynerds.ev3.enums.SearchMode
+import com.angrynerds.ev3.rootLogger
 import com.angrynerds.ev3.util.Constants
 import lejos.hardware.Device
 import lejos.hardware.motor.EV3LargeRegulatedMotor
@@ -82,10 +83,10 @@ object FeederRobot {
         //Thread.sleep(delayAfter)
     }
 
-    fun rotateRobot(angle: Double) {
+    fun rotateRobot(angle: Double, immediateReturn: Boolean = false) {
         val modeBefore: Mode = FeederRobot.mode
         mode = Mode.ROTATING
-        movePilot.rotate(angle)
+        movePilot.rotate(angle, immediateReturn)
         mode = modeBefore
     }
 
