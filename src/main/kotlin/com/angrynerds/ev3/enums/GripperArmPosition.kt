@@ -6,8 +6,8 @@ enum class GripperArmPosition(val rotations: Double, val height: Float) {
     TOP(Constants.GripperArm.TOP_ANGLE, 22.4f),
     BOTTOM_CLOSED(Constants.GripperArm.BOTTOM_CLOSED_ANGLE, 6.9f),
     BOTTOM_OPEN(Constants.GripperArm.BOTTOM_OPEN_ANGLE, 6.9f),
-    MIDDLE(Constants.GripperArm.MIDDLE_ANGLE, 144f),
-    STABLE(Constants.GripperArm.STABLE_ANGLE, 144f);   // TODO calibrate stable values
+    MIDDLE(Constants.GripperArm.MIDDLE_ANGLE, 14.4f),
+    STABLE(Constants.GripperArm.STABLE_ANGLE, 12f);   // TODO calibrate stable values
     
     fun isBottom(): Boolean {
         return this == BOTTOM_CLOSED || this == BOTTOM_OPEN
