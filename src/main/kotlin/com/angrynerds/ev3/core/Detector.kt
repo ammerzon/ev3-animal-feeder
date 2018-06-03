@@ -11,7 +11,6 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import lejos.sensors.ColorId
-import java.util.concurrent.TimeUnit
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -20,7 +19,9 @@ object Detector {
     val detectionSubject: PublishSubject<DetectionType> = PublishSubject.create()
     private val subscribers = CompositeDisposable()
 
-    val obstacles = detectionSubject.filter { it == DetectionType.OBSTACLE }.map { currentObstacleInfo!! }!!
+    val obstacles = detectionSubject.filter { it == DetectionType.OBSTACLE }
+            .filter { currentObstacleInfo != null }
+            .map { currentObstacleInfo!! }
 
     fun obstacles(obstacleType: Obstacle): Observable<ObstacleInfo> {
         return obstacles.filter {
@@ -35,15 +36,10 @@ object Detector {
         logger = LogManager.getLogManager().getLogger("detector")
         logger.addHandler(EV3LogHandler())
         logger.info("Start detecting")
-        val timeout = 500L //ms
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
-                .debounce(timeout, TimeUnit.MILLISECONDS)
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
-                .debounce(timeout, TimeUnit.MILLISECONDS)
         val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-                .debounce(timeout, TimeUnit.MILLISECONDS)
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
-                .debounce(timeout, TimeUnit.MILLISECONDS)
 
         subscribers.addAll(
                 ultrasonicObservable.subscribe(::onUltrasonicSensor),
@@ -158,10 +154,8 @@ object Detector {
     }
 
     private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
-        logger.info("PRE emitDetection: " + detectionType)
         if (!force && detectionMode == DetectionMode.IGNORE)
             return
         detectionSubject.onNext(detectionType)
-        logger.info("POST emitDetection: " + detectionType)
     }
 }
