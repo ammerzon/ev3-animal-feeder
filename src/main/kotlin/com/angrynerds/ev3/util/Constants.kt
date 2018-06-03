@@ -3,13 +3,9 @@ package com.angrynerds.ev3.util
 import lejos.sensors.ColorId
 
 object Constants {
-    object Calibration {
-        const val WAITING_TIME = 2
-    }
-
     object Reset {
         val ULTRASONIC_GRABBER_DOWN = 0.0..0.06
-        const val SPEED = 800
+        const val SPEED = 700
     }
 
     object PrecipiceDetection {
@@ -72,7 +68,7 @@ object Constants {
     }
 
     object Sensors {
-        const val IRCmPerValue = 0.4f
-        const val USCmPerValue = 120.0f
+        const val IRCmPerValue = 0.4f // infrared cm per value
+        const val USCmPerValue = 120.0f // ultrasonic cm per value
     }
 }

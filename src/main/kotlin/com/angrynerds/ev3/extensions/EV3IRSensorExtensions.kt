@@ -10,7 +10,7 @@ fun EV3IRSensor.getDistance(): Float {
 }
 
 fun getCmFromIRValue(value: Float): Float {
-    if(value.isInfinite())
+    if (value.isInfinite())
         return Float.POSITIVE_INFINITY
     return value * Constants.Sensors.IRCmPerValue
 }

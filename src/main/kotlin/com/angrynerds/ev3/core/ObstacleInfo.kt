@@ -1,33 +1,32 @@
 package com.angrynerds.ev3.core
 
 import com.angrynerds.ev3.enums.Obstacle
-import com.angrynerds.ev3.util.Config
 import com.angrynerds.ev3.util.Constants
 import lejos.sensors.ColorId
 
 class ObstacleInfo {
     var colors = emptyArray<ColorId>()
 
-    var minHeight : Float = 0f
-    var maxHeight : Float = Float.POSITIVE_INFINITY
-    val heightRange : ClosedFloatingPointRange<Float>
+    var minHeight: Float = 0f
+    var maxHeight: Float = Float.POSITIVE_INFINITY
+    val heightRange: ClosedFloatingPointRange<Float>
         get() = minHeight..maxHeight
 
     var possibleObstacles = arrayOf<Obstacle>()
 
     private fun detectedHeight(height: Float) {
-        if(height < minHeight)
+        if (height < minHeight)
             minHeight = height
-        if(height > maxHeight)
+        if (height > maxHeight)
             maxHeight = height
 
         updatePossibleObstacles()
     }
 
     private fun detectedHeightRange(minHeight: Float, maxHeight: Float) {
-        if(minHeight < this.minHeight)
+        if (minHeight < this.minHeight)
             this.minHeight = minHeight
-        if(maxHeight > this.maxHeight)
+        if (maxHeight > this.maxHeight)
             this.maxHeight = maxHeight
 
         updatePossibleObstacles()
@@ -95,7 +94,7 @@ class ObstacleInfo {
 
     private fun isTree(): Boolean {
         return isColorPossible(Constants.ObstacleCheck.TREE_COLOR)
-            && isHeightInRange(Constants.ObstacleCheck.TREE_HEIGHT)
+                && isHeightInRange(Constants.ObstacleCheck.TREE_HEIGHT)
     }
 
     private fun isAnimal(): Boolean {
@@ -105,28 +104,28 @@ class ObstacleInfo {
     }
 
     private fun isMyFeed(): Boolean {
-        return isColorPossible(Config.myFeedColor) &&
+        return isColorPossible(FeederRobot.feedColor) &&
                 Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isOpponentFeed(): Boolean {
-        return isColorPossible(Config.opponentFeedColor) &&
+        return isColorPossible(FeederRobot.opponentFeedColor) &&
                 Constants.ObstacleCheck.FEED_HEIGHT in heightRange
     }
 
     private fun isMyStable(): Boolean {
-        return isColorPossible(Config.stableColor) &&
+        return isColorPossible(FeederRobot.stableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
     private fun isOpponentStable(): Boolean {
-        return isColorPossible(Config.opponentStableColor) &&
+        return isColorPossible(FeederRobot.opponentStableColor) &&
                 Constants.StableDetection.STABLE_HEIGHT in heightRange
     }
 
     private fun isFence(): Boolean {
         return Constants.ObstacleCheck.FENCE_HEIGHT in heightRange
-            //TODO: filter impossible colors
+        //TODO: filter impossible colors
     }
 
     private fun isRobot(): Boolean {
