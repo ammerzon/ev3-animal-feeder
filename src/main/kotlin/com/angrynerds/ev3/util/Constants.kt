@@ -59,6 +59,7 @@ object Constants {
         const val BOTTOM_CLOSED_ANGLE = 2100.0
         const val BOTTOM_OPEN_ANGLE = 0.0
         const val MIDDLE_ANGLE = 2400.0
+        const val STABLE_ANGLE = 2400.0 // TODO calibrate
     }
 
     object Movement {

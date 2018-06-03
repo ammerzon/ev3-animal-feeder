@@ -10,10 +10,7 @@ import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
-import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
-import lejos.sensors.ColorId
-import java.io.File
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -83,7 +80,13 @@ fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
         FeederRobot.moveRobot()
     }
 
-    // detector subscribers should be notified with unambiguous obstacles
+    if (obstacleInfo.areObstacles(Obstacle.STABLE, Obstacle.STABLE_OPPONENT)) {
+        //Detector.detectionMode = DetectionMode.SEARCH_OBSTACLE_COLOR
+        FeederRobot.stopRobot()
+        moveGripperArmTo(GripperArmPosition.STABLE)
+        FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)    // TODO check if speed is applied instantly or if a stop is necessary
+        // now stable and color should be recognized by Detector: onStable should be triggered
+    }
 }
 
 private fun onPrecipice() {
@@ -101,6 +104,7 @@ fun onRobot() {
 
 fun onOpponentStable(obstacleInfo: ObstacleInfo) {
     printStatusOf("onOpponentStable")
+    moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
     FeederRobot.avoidObstacle()
 }
 
