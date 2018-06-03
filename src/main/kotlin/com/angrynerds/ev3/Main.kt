@@ -176,7 +176,6 @@ fun resetToInitialState() {
     FeederRobot.grabMotor.speed = Constants.Reset.SPEED
 
     val disposable = RxFeederRobot.rxUltrasonicSensor.distance.subscribe { distance ->
-        println(distance)
         if (distance.isFinite()) {
             if (isMovingUpwards) {
                 if (distance > Constants.Reset.ULTRASONIC_GRABBER_DOWN.endInclusive) {
