@@ -72,8 +72,7 @@ class ObstacleInfo {
     }
 
     fun anyObstaclePossible(): Boolean {
-        return maxHeight >= Constants.ObstacleCheck.FEED_HEIGHT
-                || (colorsForward.any { it != ColorId.NONE })
+        return !possibleObstacles.isEmpty()
     }
 
     private fun updatePossibleObstacles() {
