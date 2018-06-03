@@ -67,6 +67,8 @@ object Constants {
 
     object Movement {
         const val DEFAULT_SPEED = 80.0
+        const val SLOW_SPEED = 40.0 // TODO adjust value
+        const val HIGH_SPEED = 160.0 // TODO adjust value
     }
 
     object Sensors {

@@ -45,7 +45,7 @@ fun main(args: Array<String>) {
     FeederRobot.close()
 }
 
-fun Observable<ObstacleInfo>.filterPrecipice(): Observable<ObstacleInfo> {
+fun Observable<ObstacleInfo>.withoutAvoidingPrecipice(): Observable<ObstacleInfo> {
     return this.filter { FeederRobot.mode != Mode.AVOIDING_PRECIPICE }
 }
 
@@ -54,14 +54,14 @@ fun runRobot() {
 
     Detector.detections.subscribe { printStatusOf("detector") }
 
-    Detector.obstacles(Obstacle.STABLE).filterPrecipice().subscribe(::onStable)
-    Detector.obstacles(Obstacle.STABLE_OPPONENT).filterPrecipice().subscribe(::onOpponentStable)
-    Detector.obstacles(Obstacle.FEED).filterPrecipice().subscribe(::onFeed)
-    Detector.obstacles(Obstacle.FEED_OPPONENT).filterPrecipice().subscribe(::onOpponentFeed)
-    Detector.obstacles(Obstacle.FENCE).filterPrecipice().subscribe(::onFence)
-    Detector.obstacles(Obstacle.STABLE).filterPrecipice().subscribe(::onTree)
-    Detector.obstacles(Obstacle.ANIMAL).filterPrecipice().subscribe(::onAnimal)
-    Detector.obstacles(Obstacle.ROBOT).filterPrecipice().subscribe { onRobot() }
+    Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onStable)
+    Detector.obstacles(Obstacle.STABLE_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentStable)
+    Detector.obstacles(Obstacle.FEED).withoutAvoidingPrecipice().subscribe(::onFeed)
+    Detector.obstacles(Obstacle.FEED_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentFeed)
+    Detector.obstacles(Obstacle.FENCE).withoutAvoidingPrecipice().subscribe(::onFence)
+    Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onTree)
+    Detector.obstacles(Obstacle.ANIMAL).withoutAvoidingPrecipice().subscribe(::onAnimal)
+    Detector.obstacles(Obstacle.ROBOT).withoutAvoidingPrecipice().subscribe { onRobot() }
 
     Detector.detections.filter { it == Detector.DetectionType.ROBOT }.subscribe { onRobot() }
     Detector.detections.filter { it == Detector.DetectionType.PRECIPICE }.subscribe { onPrecipice() }
@@ -75,9 +75,11 @@ fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
 
     if (obstacleInfo.areObstacles(Obstacle.FEED, Obstacle.FEED_OPPONENT)) {
         FeederRobot.mode = Mode.MOVING_SLOWLY
+        FeederRobot.movePilot.linearSpeed = Constants.Movement.SLOW_SPEED
     }
 
     Detector.detectionMode = Detector.DetectionMode.SEARCH_OBSTACLE_COLOR
+    // detector subscribers should be notified with unambiguous obstacles
 }
 
 private fun onPrecipice() {
@@ -134,13 +136,21 @@ fun onAnimal(obstacleInfo: ObstacleInfo) {
 fun onTree(obstacleInfo: ObstacleInfo) {
     printStatusOf("onTree")
     FeederRobot.stopRobot(1000)
-    // TODO crash into tree
+    val modeBefore: Mode = FeederRobot.mode
+    val speedBefore = FeederRobot.movePilot.linearSpeed
+
+    FeederRobot.mode = Mode.MOVING_SLOWLY
+    FeederRobot.movePilot.linearSpeed = Constants.Movement.HIGH_SPEED
+    FeederRobot.moveRobot(50.0) // TODO adjust value
+
+    FeederRobot.movePilot.linearSpeed = speedBefore
+    FeederRobot.mode = modeBefore
 }
 
 fun onFence(obstacleInfo: ObstacleInfo) {
     printStatusOf("onFence")
     FeederRobot.stopRobot(1000)
-    // demolish
+    // TODO what is demolish fence?
 }
 
 fun printStatusOf(funName: String) = logger.info("$funName: " +
@@ -148,9 +158,7 @@ fun printStatusOf(funName: String) = logger.info("$funName: " +
         "| mode=${FeederRobot.mode.name} " +
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name}" +
         "| detection=${Detector.detections.last(null).blockingGet().name}" +
-        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}"
-        /*+
-        "| animalType=${FeederRobot.animalType.name}"*/)
+        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
 
 fun testDetector() {
     logger.info("Detecting...")
