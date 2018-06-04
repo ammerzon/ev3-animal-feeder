@@ -3,6 +3,7 @@ package com.angrynerds.ev3.core
 import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.DetectionMode
 import com.angrynerds.ev3.enums.DetectionType
+import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
@@ -120,6 +121,9 @@ object Detector {
 
     private fun onForwardColor(colorId: ColorId) {
         if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
+            return
+
+        if (FeederRobot.gripperArmPosition == GripperArmPosition.BOTTOM_CLOSED)
             return
 
         val obstacleInfo = ensureObstacleDetection()
