@@ -11,7 +11,6 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.lcd.LCD
-import lejos.sensors.ColorId
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -58,7 +57,7 @@ fun runRobot() {
     Detector.obstacles(Obstacle.FEED).withoutAvoidingPrecipice().subscribe(::onFeed)
     Detector.obstacles(Obstacle.FEED_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentFeed)
     Detector.obstacles(Obstacle.FENCE).withoutAvoidingPrecipice().subscribe(::onFence)
-    Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onTree)
+    Detector.obstacles(Obstacle.TREE).withoutAvoidingPrecipice().subscribe(::onTree)
     Detector.obstacles(Obstacle.ANIMAL).withoutAvoidingPrecipice().subscribe(::onAnimal)
     Detector.obstacles(Obstacle.ROBOT).withoutAvoidingPrecipice().subscribe { onRobot() }
 
@@ -130,8 +129,7 @@ fun onFeed(obstacleInfo: ObstacleInfo) {
     if (FeederRobot.searchMode == SearchMode.FEED) {
         FeederRobot.stopRobot()
         moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
-        // TODO: is here a delay necessary or is moveGripperArmTo blocking?
-        moveGripperArmTo(GripperArmPosition.TOP)
+        moveGripperArmTo(GripperArmPosition.STABLE)
         FeederRobot.searchMode = SearchMode.STABLE
         FeederRobot.moveRobot()
     }
@@ -255,7 +253,10 @@ fun configureFeederRobot() {
 fun openConnections() {
     rootLogger.info("Opening connections")
     FeederRobot.grabMotor
-    RxFeederRobot.rxUltrasonicSensor
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe({})
+    RxFeederRobot.rxInfraredSensor.distance.subscribe({})
+    RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
+    RxFeederRobot.rxColorSensorVertical.colorId.blockingFirst()
 }
 
 /**
