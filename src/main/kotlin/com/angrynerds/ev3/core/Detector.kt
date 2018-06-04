@@ -123,7 +123,7 @@ object Detector {
         if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
             return
 
-        if (FeederRobot.gripperArmPosition == GripperArmPosition.BOTTOM_CLOSED)
+        if (FeederRobot.gripperArmPosition != GripperArmPosition.BOTTOM_OPEN)
             return
 
         val obstacleInfo = ensureObstacleDetection()
