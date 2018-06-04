@@ -123,8 +123,10 @@ object Detector {
         if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
             return
 
-        if (FeederRobot.gripperArmPosition != GripperArmPosition.BOTTOM_OPEN)
+        if (FeederRobot.gripperArmPosition != GripperArmPosition.BOTTOM_OPEN) {
+            currentObstacleInfo?.onSensorDetectedColorForward(ColorId.NONE)
             return
+        }
 
         val obstacleInfo = ensureObstacleDetection()
         obstacleInfo.onSensorDetectedColorForward(colorId)
@@ -143,8 +145,10 @@ object Detector {
         if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
             return
 
-        if (FeederRobot.gripperArmPosition.isBottom())
+        if (FeederRobot.gripperArmPosition.isBottom()) {
+            currentObstacleInfo?.onSensorDetectedColorVertical(ColorId.NONE)
             return
+        }
 
         val obstacleInfo = ensureObstacleDetection()
         obstacleInfo.onSensorDetectedColorVertical(colorId)
