@@ -115,6 +115,8 @@ fun onStable(obstacleInfo: ObstacleInfo) {
         moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
         FeederRobot.turnAround()
         FeederRobot.searchMode = SearchMode.FEED
+    } else {
+        FeederRobot.turnAround()
     }
 }
 
