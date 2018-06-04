@@ -139,6 +139,9 @@ object Detector {
         if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
             return
 
+        if (FeederRobot.gripperArmPosition.isBottom())
+            return
+
         val obstacleInfo = ensureObstacleDetection()
         obstacleInfo.onSensorDetectedColorVertical(colorId)
 
