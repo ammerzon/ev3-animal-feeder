@@ -10,7 +10,10 @@ import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
+import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
+import lejos.sensors.ColorId
+import java.io.File
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -18,6 +21,8 @@ var rootLogger = Logger.getLogger("main")
 val compositeSubscription = CompositeDisposable()
 
 fun main(args: Array<String>) {
+
+    // TODO remove inconclusive and possible obstacles
 
     LogManager.getLogManager().reset()
     rootLogger = LogManager.getLogManager().getLogger("main")
@@ -34,9 +39,6 @@ fun main(args: Array<String>) {
     println("Press a button to start execution...")
     Button.waitForAnyPress()
 
-    // Exec
-    // testDetector()
-
     LCD.clear()
     runRobot()
 
@@ -50,8 +52,6 @@ fun Observable<ObstacleInfo>.withoutAvoidingPrecipice(): Observable<ObstacleInfo
 }
 
 fun runRobot() {
-    Detector.detectionSubject.subscribe { printStatusOf("detector", it) }
-
     Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onStable)
     Detector.obstacles(Obstacle.STABLE_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentStable)
     Detector.obstacles(Obstacle.FEED).withoutAvoidingPrecipice().subscribe(::onFeed)
@@ -63,33 +63,13 @@ fun runRobot() {
 
     Detector.detectionSubject.filter { it == DetectionType.ROBOT }.subscribe { onRobot() }
     Detector.detectionSubject.filter { it == DetectionType.PRECIPICE }.subscribe { onPrecipice() }
-    Detector.obstacles.filter({ it.possibleObstacles.size > 2 }).subscribe(::onInconclusiveObstacle)
     Detector.start()
 
     FeederRobot.moveRobot()
 }
 
-fun onInconclusiveObstacle(obstacleInfo: ObstacleInfo) {
-    if (obstacleInfo.isObstacle(Obstacle.TREE) && obstacleInfo.isObstacle(Obstacle.FENCE)
-            && obstacleInfo.possibleObstacles.size == 2) {
-    }
-
-    if (obstacleInfo.areObstacles(Obstacle.FEED, Obstacle.FEED_OPPONENT)) {
-        FeederRobot.mode = Mode.MOVING
-        FeederRobot.movePilot.linearSpeed = Constants.Movement.SLOW_SPEED
-        FeederRobot.moveRobot()
-    }
-
-    if (obstacleInfo.areObstacles(Obstacle.STABLE, Obstacle.STABLE_OPPONENT)) {
-        //Detector.detectionMode = DetectionMode.SEARCH_OBSTACLE_COLOR
-        FeederRobot.stopRobot()
-        moveGripperArmTo(GripperArmPosition.STABLE)
-        FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)    // TODO check if speed is applied instantly or if a stop is necessary
-        // now stable and color should be recognized by Detector: onStable should be triggered
-    }
-}
-
 private fun onPrecipice() {
+    printStatusOf("onPrecipice")
     val modeBefore: Mode = FeederRobot.mode
     FeederRobot.mode = Mode.AVOIDING_PRECIPICE
     FeederRobot.stopRobot(1000)
@@ -104,17 +84,16 @@ fun onRobot() {
 
 fun onOpponentStable(obstacleInfo: ObstacleInfo) {
     printStatusOf("onOpponentStable")
-    moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
     FeederRobot.avoidObstacle()
 }
 
 fun onStable(obstacleInfo: ObstacleInfo) {
     printStatusOf("onStable")
     if (FeederRobot.searchMode == SearchMode.STABLE) {
+        FeederRobot.searchMode = SearchMode.FEED
         FeederRobot.stopRobot()
         moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
         FeederRobot.turnAround()
-        FeederRobot.searchMode = SearchMode.FEED
     } else {
         FeederRobot.turnAround()
     }
@@ -127,12 +106,12 @@ fun onOpponentFeed(obstacleInfo: ObstacleInfo) {
 }
 
 fun onFeed(obstacleInfo: ObstacleInfo) {
-    printStatusOf("onFeed")
     if (FeederRobot.searchMode == SearchMode.FEED) {
+        printStatusOf("onFeed")
+        FeederRobot.searchMode = SearchMode.STABLE
         FeederRobot.stopRobot()
         moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
         moveGripperArmTo(GripperArmPosition.STABLE)
-        FeederRobot.searchMode = SearchMode.STABLE
         FeederRobot.moveRobot()
     }
 }
@@ -144,6 +123,7 @@ fun onAnimal(obstacleInfo: ObstacleInfo) {
 }
 
 fun onTree(obstacleInfo: ObstacleInfo) {
+    // TODO case when infrared sensor is on same height as tree
     printStatusOf("onTree")
     FeederRobot.stopRobot(1000)
 
@@ -167,16 +147,6 @@ fun printStatusOf(funName: String, detectionType: DetectionType) = rootLogger.in
         "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} " +
         "| detectionType=$detectionType " +
         "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
-
-fun testDetector() {
-    rootLogger.info("Detecting...")
-
-    Detector.detectionSubject.subscribe {
-        rootLogger.info("detected: $it")
-    }
-
-    Button.waitForAnyPress()
-}
 
 /**
  * Moves the gripper arm to the position [GripperArmPosition.BOTTOM_OPEN].
@@ -216,7 +186,7 @@ fun configureFeederRobot() {
     rootLogger.info("Robot calibration started")
     var shouldQuit = false
 
-    /*do {
+    do {
         println("Put color before the sensor and press a button...")
         Button.waitForAnyPress()
         val colorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
@@ -241,9 +211,8 @@ fun configureFeederRobot() {
             println("Couldn't find any valid feed color (${Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR.name}| " +
                     "${Constants.ObstacleCheck.I_AAH_FEED_COLOR.name})")
         }
-    } while (!shouldQuit)*/
+    } while (!shouldQuit)
 
-    FeederRobot.feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
     rootLogger.info("Animal type: " + FeederRobot.animalType)
     rootLogger.info("Feed color: " + FeederRobot.feedColor)
     rootLogger.info("Stable color: " + FeederRobot.stableColor)
@@ -258,6 +227,7 @@ fun openConnections() {
     RxFeederRobot.rxUltrasonicSensor.distance.subscribe({})
     RxFeederRobot.rxInfraredSensor.distance.subscribe({})
     RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
+    RxFeederRobot.rxColorSensorForward.colorId.subscribe({ println("FORWARDCOLOR=" + it.toString()) })
     RxFeederRobot.rxColorSensorVertical.colorId.blockingFirst()
 }
 

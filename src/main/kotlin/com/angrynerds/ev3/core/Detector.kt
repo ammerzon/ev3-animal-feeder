@@ -77,8 +77,6 @@ object Detector {
         obstacleInfo.onSensorDetectedHeight(height)
 
         if (!obstacleInfo.anyObstaclePossible()) {
-            // no obstacle (table height detected)
-            endObstacleDetection()
             emitDetection(DetectionType.NOTHING)
             return
         }
@@ -130,8 +128,6 @@ object Detector {
         obstacleInfo.onSensorDetectedColorForward(colorId)
 
         if (!obstacleInfo.anyObstaclePossible()) {
-            // no obstacle (table height detected)
-            endObstacleDetection()
             emitDetection(DetectionType.NOTHING)
             return
         }
@@ -150,8 +146,6 @@ object Detector {
         obstacleInfo.onSensorDetectedColorVertical(colorId)
 
         if (!obstacleInfo.anyObstaclePossible()) {
-            // no obstacle (table height detected)
-            endObstacleDetection()
             emitDetection(DetectionType.NOTHING)
             return
         }

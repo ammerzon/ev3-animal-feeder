@@ -43,14 +43,9 @@ object Constants {
     }
 
     object StableDetection {
-        val STABLE_HEIGHT = 8f
+        val STABLE_HEIGHT = 4f
         val WINNIE_POOH_STABLE_COLOR = ColorId.BLUE
         val I_AAH_FEED_COLOR = ColorId.WHITE
-    }
-
-    object DemolishFence {
-        // vertical distance between the fence and the ultrasonic sensor
-        val ULTRASONIC_THRESHOLD = 10
     }
 
     object GripperArm {
@@ -58,14 +53,14 @@ object Constants {
         const val TOP_ANGLE = 5400.0
         const val BOTTOM_CLOSED_ANGLE = 2100.0
         const val BOTTOM_OPEN_ANGLE = 0.0
-        const val MIDDLE_ANGLE = 3000.0
-        const val STABLE_ANGLE = 3000.0 // TODO calibrate
+        const val MIDDLE_ANGLE = 3600.0
+        const val STABLE_ANGLE = 3400.0
     }
 
     object Movement {
         const val DEFAULT_SPEED = 80.0
-        const val SLOW_SPEED = 20.0 // TODO adjust value
-        const val HIGH_SPEED = 160.0 // TODO adjust value
+        const val SLOW_SPEED = 20.0
+        const val HIGH_SPEED = 160.0
     }
 
     object Sensors {
