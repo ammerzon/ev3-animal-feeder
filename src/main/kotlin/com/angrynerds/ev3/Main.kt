@@ -2,7 +2,6 @@ package com.angrynerds.ev3
 
 import com.angrynerds.ev3.core.Detector
 import com.angrynerds.ev3.core.FeederRobot
-import com.angrynerds.ev3.core.ObstacleInfo
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.*
@@ -12,7 +11,6 @@ import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.Sound
 import lejos.hardware.lcd.LCD
-import lejos.sensors.ColorId
 import java.io.File
 import java.util.logging.LogManager
 import java.util.logging.Logger
@@ -22,8 +20,6 @@ val compositeSubscription = CompositeDisposable()
 
 fun main(args: Array<String>) {
 
-    // TODO remove inconclusive and possible obstacles
-
     LogManager.getLogManager().reset()
     rootLogger = LogManager.getLogManager().getLogger("main")
     rootLogger.addHandler(EV3LogHandler())
@@ -32,49 +28,82 @@ fun main(args: Array<String>) {
     openConnections()
     resetToInitialState()
 
-    println("Press a button to calibrate the robot...")
+    println("Press a button to scan feed...")
     Button.waitForAnyPress()
-    configureFeederRobot()
-
-    println("Press a button to start execution...")
-    Button.waitForAnyPress()
-
-    LCD.clear()
-    runRobot()
+    scan()
 
     println("Press a button to close the program...")
     Button.waitForAnyPress()
     FeederRobot.close()
 }
 
-fun Observable<ObstacleInfo>.withoutAvoidingPrecipice(): Observable<ObstacleInfo> {
-    return this.filter { FeederRobot.mode != Mode.AVOIDING_PRECIPICE }
+fun Observable<Obstacle>.filterProcesses(): Observable<Obstacle> {
+    return this.filter { FeederRobot.action != Action.AVOIDING_PRECIPICE || FeederRobot.action != Action.AVOIDING_OBSTACLE }
 }
 
-fun runRobot() {
-    Detector.obstacles(Obstacle.STABLE).withoutAvoidingPrecipice().subscribe(::onStable)
-    Detector.obstacles(Obstacle.STABLE_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentStable)
-    Detector.obstacles(Obstacle.FEED).withoutAvoidingPrecipice().subscribe(::onFeed)
-    Detector.obstacles(Obstacle.FEED_OPPONENT).withoutAvoidingPrecipice().subscribe(::onOpponentFeed)
-    Detector.obstacles(Obstacle.FENCE).withoutAvoidingPrecipice().subscribe(::onFence)
-    Detector.obstacles(Obstacle.TREE).withoutAvoidingPrecipice().subscribe(::onTree)
-    Detector.obstacles(Obstacle.ANIMAL).withoutAvoidingPrecipice().subscribe(::onAnimal)
-    Detector.obstacles(Obstacle.ROBOT).withoutAvoidingPrecipice().subscribe { onRobot() }
+fun scan() {
+    Detector.obstacles.filter { it == Obstacle.SCANNED_FEED }.filterProcesses().subscribe { onFeedScanned() }
+    Detector.startScan()
+}
 
-    Detector.detectionSubject.filter { it == DetectionType.ROBOT }.subscribe { onRobot() }
-    Detector.detectionSubject.filter { it == DetectionType.PRECIPICE }.subscribe { onPrecipice() }
-    Detector.start()
+fun onFeedScanned() {
+    LCD.clear()
+    rootLogger.info("Feed scanned: ${FeederRobot.feedColor} for ${FeederRobot.animalType.name}")
+    rootLogger.info("Press escape to read the color again or press up to confirm color")
 
+    when (FeederRobot.animalType) {
+        AnimalType.WINNIE_POOH -> Sound.playSample(File(SoundEffects.BEAR.fileName))
+        AnimalType.I_AAH -> Sound.playSample(File(SoundEffects.DONKEY.fileName))
+    }
+
+    val buttonResult = Button.waitForAnyPress()
+
+    when (buttonResult) {
+        Button.ID_ESCAPE -> scan()
+        Button.ID_LEFT -> {
+            FeederRobot.animalType = AnimalType.I_AAH
+            rootLogger.info("I Aah (Green) is set as feed color.")
+            run()
+        }
+        Button.ID_RIGHT -> {
+            FeederRobot.animalType = AnimalType.WINNIE_POOH
+            rootLogger.info("Winnie Pooh (Yellow) is set as feed color.")
+            run()
+        }
+        else -> run()
+    }
+}
+
+fun run() {
+    LCD.clear()
+    println("Press a button to start execution...")
+    Button.waitForAnyPress()
+
+    Detector.obstacles.filter { it == Obstacle.STABLE }.filterProcesses().subscribe { onStable() }
+    Detector.obstacles.filter { it == Obstacle.STABLE_OPPONENT }.filterProcesses().subscribe { onOpponentStable() }
+    Detector.obstacles.filter { it == Obstacle.STABLE_HEIGHT }.filterProcesses().subscribe { onStableHeight() }
+    Detector.obstacles.filter { it == Obstacle.FEED }.filterProcesses().subscribe { onFeed() }
+    Detector.obstacles.filter { it == Obstacle.FEED_OPPONENT }.filterProcesses().subscribe { onOpponentFeed() }
+    Detector.obstacles.filter { it == Obstacle.FENCE }.filterProcesses().subscribe { onFence() }
+    Detector.obstacles.filter { it == Obstacle.TREE }.filterProcesses().subscribe { onTree() }
+    Detector.obstacles.filter { it == Obstacle.ANIMAL }.filterProcesses().subscribe { onAnimal() }
+    Detector.obstacles.filter { it == Obstacle.ROBOT }.filterProcesses().subscribe { onRobot() }
+    Detector.obstacles.filter { it == Obstacle.PRECIPICE }.filterProcesses().subscribe { onPrecipice() }
+
+    Detector.startDetectingObstacles()
     FeederRobot.moveRobot()
+}
+
+fun onStableHeight() {
+    printStatusOf("onStableHeight")
+    FeederRobot.stopRobot()
+    FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
+    FeederRobot.mode = Mode.APPROACHING_STABLE
 }
 
 private fun onPrecipice() {
     printStatusOf("onPrecipice")
-    val modeBefore: Mode = FeederRobot.mode
-    FeederRobot.mode = Mode.AVOIDING_PRECIPICE
-    FeederRobot.stopRobot(1000)
-    FeederRobot.turnAround(true, 2000)
-    FeederRobot.mode = modeBefore
+    FeederRobot.avoidPrecipice()
 }
 
 fun onRobot() {
@@ -82,30 +111,38 @@ fun onRobot() {
     FeederRobot.avoidObstacle()
 }
 
-fun onOpponentStable(obstacleInfo: ObstacleInfo) {
+fun onOpponentStable() {
     printStatusOf("onOpponentStable")
     FeederRobot.avoidObstacle()
 }
 
-fun onStable(obstacleInfo: ObstacleInfo) {
+fun onStable() {
     printStatusOf("onStable")
     if (FeederRobot.searchMode == SearchMode.STABLE) {
-        FeederRobot.searchMode = SearchMode.FEED
-        FeederRobot.stopRobot()
-        moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
-        FeederRobot.turnAround()
+        if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
+            FeederRobot.searchMode = SearchMode.FEED
+            FeederRobot.stopRobot()
+            moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+            moveGripperArmTo(GripperArmPosition.TOP)
+            printStatusOf("onPrecipice")
+            FeederRobot.turnAround()
+        } else {
+            // should not happen!
+            rootLogger.warning("Stable found but robot did not approach stable before")
+        }
     } else {
+        // stable detected, but no feed picked up before
         FeederRobot.turnAround()
     }
 }
 
-fun onOpponentFeed(obstacleInfo: ObstacleInfo) {
+fun onOpponentFeed() {
     printStatusOf("onOpponentFeed")
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
 }
 
-fun onFeed(obstacleInfo: ObstacleInfo) {
+fun onFeed() {
     if (FeederRobot.searchMode == SearchMode.FEED) {
         printStatusOf("onFeed")
         FeederRobot.searchMode = SearchMode.STABLE
@@ -116,13 +153,13 @@ fun onFeed(obstacleInfo: ObstacleInfo) {
     }
 }
 
-fun onAnimal(obstacleInfo: ObstacleInfo) {
+fun onAnimal() {
     printStatusOf("onAnimal")
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
 }
 
-fun onTree(obstacleInfo: ObstacleInfo) {
+fun onTree() {
     // TODO case when infrared sensor is on same height as tree
     printStatusOf("onTree")
     FeederRobot.stopRobot(1000)
@@ -131,22 +168,16 @@ fun onTree(obstacleInfo: ObstacleInfo) {
             Constants.Movement.HIGH_SPEED)
 }
 
-fun onFence(obstacleInfo: ObstacleInfo) {
+fun onFence() {
     printStatusOf("onFence")
+    // TODO check if something is here to do
 }
 
 fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
         "| searchMode=${FeederRobot.searchMode.name} " +
+        "| action=${FeederRobot.action.name} " +
         "| mode=${FeederRobot.mode.name} " +
-        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} " +
-        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
-
-fun printStatusOf(funName: String, detectionType: DetectionType) = rootLogger.info("$funName: " +
-        "| searchMode=${FeederRobot.searchMode.name} " +
-        "| mode=${FeederRobot.mode.name} " +
-        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} " +
-        "| detectionType=$detectionType " +
-        "| obstacle= ${Detector.currentObstacleInfo?.possibleObstacles?.joinToString(",")}")
+        "| gripperArmPosition=${FeederRobot.gripperArmPosition.name} ")
 
 /**
  * Moves the gripper arm to the position [GripperArmPosition.BOTTOM_OPEN].
@@ -180,54 +211,14 @@ fun resetToInitialState() {
 }
 
 /**
- * Read the horizontal color sensor value and sets [FeederRobot.animalType].
- */
-fun configureFeederRobot() {
-    rootLogger.info("Robot calibration started")
-    var shouldQuit = false
-
-    do {
-        println("Put color before the sensor and press a button...")
-        Button.waitForAnyPress()
-        val colorId = ColorId.colorId(FeederRobot.colorSensorForward.colorID)
-        println("Recognized color: ${colorId.name}")
-        if (colorId == Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR ||
-                colorId == Constants.ObstacleCheck.I_AAH_FEED_COLOR) {
-            if (colorId == Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR) {
-                Sound.playSample(File(SoundEffects.BEAR.fileName))
-                FeederRobot.feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
-
-            } else if (colorId == Constants.ObstacleCheck.I_AAH_FEED_COLOR) {
-                Sound.playSample(File(SoundEffects.DONKEY.fileName))
-                FeederRobot.feedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
-            }
-
-            println("Press escape to reread color. Any other button to continue.")
-            if (Button.waitForAnyPress() != Button.ID_ESCAPE) {
-                shouldQuit = true
-            }
-        } else {
-            Sound.playSample(File(SoundEffects.ERROR.fileName))
-            println("Couldn't find any valid feed color (${Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR.name}| " +
-                    "${Constants.ObstacleCheck.I_AAH_FEED_COLOR.name})")
-        }
-    } while (!shouldQuit)
-
-    rootLogger.info("Animal type: " + FeederRobot.animalType)
-    rootLogger.info("Feed color: " + FeederRobot.feedColor)
-    rootLogger.info("Stable color: " + FeederRobot.stableColor)
-}
-
-/**
  * Opens all motor ports and sensor ports and creates the sensor observables.
  */
 fun openConnections() {
     rootLogger.info("Opening connections")
     FeederRobot.grabMotor
-    RxFeederRobot.rxUltrasonicSensor.distance.subscribe({})
-    RxFeederRobot.rxInfraredSensor.distance.subscribe({})
+    RxFeederRobot.rxUltrasonicSensor.distance.blockingFirst()
+    RxFeederRobot.rxInfraredSensor.distance.blockingFirst()
     RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
-    RxFeederRobot.rxColorSensorForward.colorId.subscribe({ println("FORWARDCOLOR=" + it.toString()) })
     RxFeederRobot.rxColorSensorVertical.colorId.blockingFirst()
 }
 

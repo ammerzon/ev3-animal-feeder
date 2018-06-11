@@ -1,10 +1,9 @@
 package com.angrynerds.ev3.enums
 
 enum class Mode {
+    DEFAULT,
     MOVING,
     HALTING,
     ROTATING,
-    DEFAULT,
-    AVOIDING_PRECIPICE,
-    AVOIDING_OBSTACLE
+    APPROACHING_STABLE
 }

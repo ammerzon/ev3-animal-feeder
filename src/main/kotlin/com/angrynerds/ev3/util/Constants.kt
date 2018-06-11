@@ -3,6 +3,10 @@ package com.angrynerds.ev3.util
 import lejos.sensors.ColorId
 
 object Constants {
+    object FeedScan {
+        const val SCAN_TIMES = 3
+    }
+
     object Reset {
         val ULTRASONIC_GRABBER_DOWN = 0.0..0.06
         const val SPEED = 700
@@ -26,7 +30,7 @@ object Constants {
         // color of I-AahÄs feed color
         val I_AAH_FEED_COLOR = ColorId.GREEN
         // colors of the other animals placed in the arena (e. g. tiger, ...)
-        val NOT_ANIMAL_COLORS = arrayOf(ColorId.BROWN, ColorId.GREEN, ColorId.YELLOW, ColorId.WHITE, ColorId.BLUE)
+        val NOT_ANIMAL_COLORS = arrayOf(ColorId.BROWN, ColorId.GREEN, ColorId.YELLOW, ColorId.WHITE, ColorId.BLUE) // TODO check if up to date
         // height of feed
         val FEED_HEIGHT = 2f
         // height of fence 0.03..0.04

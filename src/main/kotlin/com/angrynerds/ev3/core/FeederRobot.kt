@@ -1,9 +1,6 @@
 package com.angrynerds.ev3.core
 
-import com.angrynerds.ev3.enums.AnimalType
-import com.angrynerds.ev3.enums.GripperArmPosition
-import com.angrynerds.ev3.enums.Mode
-import com.angrynerds.ev3.enums.SearchMode
+import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.rootLogger
 import com.angrynerds.ev3.util.Constants
 import lejos.hardware.Device
@@ -57,12 +54,34 @@ object FeederRobot {
                 }
             }
         }
+
     var feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
+        set(value) {
+            when (value) {
+                Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR -> {
+                    animalType = AnimalType.WINNIE_POOH
+                    opponentFeedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
+                    stableColor = Constants.StableDetection.I_AAH_FEED_COLOR
+                    opponentStableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
+                }
+                Constants.ObstacleCheck.I_AAH_FEED_COLOR -> {
+                    animalType = AnimalType.I_AAH
+                    opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
+                    stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
+                    opponentStableColor = Constants.StableDetection.I_AAH_FEED_COLOR
+                }
+                else -> {
+                    rootLogger.warning("Trying to set invalid feed color (valid colors are YELLOW and GREEN)")
+                }
+            }
+        }
     var opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
     var stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
     var opponentStableColor = Constants.StableDetection.I_AAH_FEED_COLOR
     var gripperArmPosition = GripperArmPosition.BOTTOM_OPEN
-    var mode = Mode.HALTING
+
+    var mode = Mode.DEFAULT
+    var action: Action = Action.DEFAULT
     var searchMode = SearchMode.FEED
     //endregion
 
@@ -109,9 +128,28 @@ object FeederRobot {
     }
 
     fun avoidObstacle(delayAfterRotation: Long = 0) {
+        val modeBefore: Mode = FeederRobot.mode
+        val actionBefore: Action = FeederRobot.action
+
+        action = Action.AVOIDING_OBSTACLE
         moveRobotByDistance(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
         rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
+
+        mode = modeBefore
+        action = actionBefore
         //Thread.sleep(delayAfterRotation)
         moveRobot()
+    }
+
+    fun avoidPrecipice() {
+        val modeBefore: Mode = FeederRobot.mode
+        val actionBefore: Action = FeederRobot.action
+
+        FeederRobot.action = Action.AVOIDING_PRECIPICE
+        FeederRobot.stopRobot(1000)
+        FeederRobot.turnAround(true, 2000)
+
+        mode = modeBefore
+        action = actionBefore
     }
 }

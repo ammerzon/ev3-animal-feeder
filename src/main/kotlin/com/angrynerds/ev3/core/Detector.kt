@@ -1,14 +1,12 @@
 package com.angrynerds.ev3.core
 
 import com.angrynerds.ev3.debug.EV3LogHandler
-import com.angrynerds.ev3.enums.DetectionMode
-import com.angrynerds.ev3.enums.DetectionType
 import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
+import com.angrynerds.ev3.extensions.isValidFeedColor
 import com.angrynerds.ev3.util.Constants
-import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import lejos.sensors.ColorId
@@ -17,85 +15,58 @@ import java.util.logging.Logger
 
 object Detector {
     private var logger = Logger.getLogger("detector")
-    val detectionSubject: PublishSubject<DetectionType> = PublishSubject.create()
+
+    val obstacles: PublishSubject<Obstacle> = PublishSubject.create()
     private val subscribers = CompositeDisposable()
+    var detectionType = DetectionType.FEED_SCAN
 
-    val obstacles: Observable<ObstacleInfo> = detectionSubject.filter { it == DetectionType.OBSTACLE }
-            .filter { currentObstacleInfo != null }.map { currentObstacleInfo }
+    private var scannedColorId = ColorId.NONE
+    private var scanCounter = 0
+    private var feedScanned: Boolean = false
 
-    fun obstacles(obstacleType: Obstacle): Observable<ObstacleInfo> {
-        return obstacles.filter {
-            it.isObstacle(obstacleType, true)
-        }
-    }
-
-    var currentObstacleInfo: ObstacleInfo? = null
-    var detectionMode = DetectionMode.DEFAULT
-
-    fun start() {
+    init {
         logger = LogManager.getLogManager().getLogger("detector")
         logger.addHandler(EV3LogHandler())
-        logger.info("Start detecting")
+        logger.info("DETECTOR: Detector started")
+    }
+
+    fun startScan() {
+        logger.info("DETECTOR: Start scanning feed")
+
+        detectionType = DetectionType.FEED_SCAN
+        feedScanned = false
+        scanCounter = 0
+        scannedColorId = ColorId.NONE
+
+        subscribers.clear()
+
+        val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
+        subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
+    }
+
+    fun startDetectingObstacles() {
+        detectionType = DetectionType.OBSTACLE
+        logger.info("DETECTOR: Start detecting obstacles")
+
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
-        val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
 
         subscribers.addAll(
                 ultrasonicObservable.subscribe(::onUltrasonicSensor),
                 infraredObservable.subscribe(::onInfraredSensor),
-                colorForwardObservable.subscribe(::onForwardColorSensor),
                 colorVerticalObservable.subscribe(::onVerticalColorSensor)
         )
-    }
 
-    private fun startObstacleDetection(): ObstacleInfo {
-        val obstacleInfo = ObstacleInfo()
-        currentObstacleInfo = obstacleInfo
-        return obstacleInfo
-    }
-
-    private fun endObstacleDetection() {
-        currentObstacleInfo = null
-    }
-
-    private fun ensureObstacleDetection(): ObstacleInfo {
-        return currentObstacleInfo ?: startObstacleDetection()
-    }
-
-    private fun onHeight(height: Float) {
-        logger.info("height: " + height)
-        if (height < -10) {
-            onPrecipice()
-            return
+        if (!feedScanned) {
+            logger.warning("DETECTOR: Detecting obstacles called without feed scanned.")
+            val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
+            subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
         }
-
-        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_COLOR)
-            return
-
-        val obstacleInfo = ensureObstacleDetection()
-        obstacleInfo.onSensorDetectedHeight(height)
-
-        if (!obstacleInfo.anyObstaclePossible()) {
-            emitDetection(DetectionType.NOTHING)
-            return
-        }
-
-        if (obstacleInfo.isObstacle(Obstacle.ROBOT, true))
-            emitDetection(DetectionType.ROBOT)
-        else
-            emitDetection(DetectionType.OBSTACLE)
     }
 
-    private fun onDistance(distance: Float) {
-        if (distance <= Constants.ObstacleCheck.ROBOT_DETECTION_MAX_DISTANCE)
-            emitDetection(DetectionType.ROBOT)
-    }
 
-    private fun onPrecipice() {
-        emitDetection(DetectionType.PRECIPICE, true)
-    }
-
+    // region subscribers
     private fun onUltrasonicSensor(distance: Float) {
         if (distance.isFinite()) {
             val distanceInCm = getCmFromUSValue(distance)
@@ -110,52 +81,107 @@ object Detector {
     }
 
     private fun onForwardColorSensor(color: ColorId) {
-        onForwardColor(color)
+        if (detectionType == DetectionType.OBSTACLE) {
+            onObstacleForwardColor(color)
+        } else if (detectionType == DetectionType.FEED_SCAN && !feedScanned) {
+            onFeedScanForwardColor(color)
+        }
     }
 
     private fun onVerticalColorSensor(color: ColorId) {
         onVerticalColor(color)
     }
+    // endregion
 
-    private fun onForwardColor(colorId: ColorId) {
-        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
-            return
+    // region helpers
+    private fun detect(obstacle: Obstacle) {
+        obstacles.onNext(obstacle)
+    }
+    // endregion
 
-        if (FeederRobot.gripperArmPosition != GripperArmPosition.BOTTOM_OPEN)
-            return
-
-        val obstacleInfo = ensureObstacleDetection()
-        obstacleInfo.onSensorDetectedColorForward(colorId)
-
-        if (!obstacleInfo.anyObstaclePossible()) {
-            emitDetection(DetectionType.NOTHING)
-            return
+    // region events
+    private fun onHeight(height: Float) {
+        logger.info("DETECTOR: height: $height")
+        when {
+            height < -10 -> {
+                detect(Obstacle.PRECIPICE)
+                return
+            }
+            isStableHeight(height) -> {
+                detect(Obstacle.STABLE_HEIGHT)
+            }
+            isFenceHeight(height) -> {
+                detect(Obstacle.FENCE)
+            }
         }
-
-        emitDetection(DetectionType.OBSTACLE)
     }
 
-    private fun onVerticalColor(colorId: ColorId) {
-        if (detectionMode == DetectionMode.SEARCH_OBSTACLE_HEIGHT)
-            return
-
-        if (FeederRobot.gripperArmPosition.isBottom())
-            return
-
-        val obstacleInfo = ensureObstacleDetection()
-        obstacleInfo.onSensorDetectedColorVertical(colorId)
-
-        if (!obstacleInfo.anyObstaclePossible()) {
-            emitDetection(DetectionType.NOTHING)
-            return
-        }
-
-        emitDetection(DetectionType.OBSTACLE)
+    private fun isFenceHeight(height: Float): Boolean {
+        // TODO check if measured height is fence height - consider the height of the gripper arm!
+        return false
     }
 
-    private fun emitDetection(detectionType: DetectionType, force: Boolean = false) {
-        if (!force && detectionMode == DetectionMode.IGNORE)
-            return
-        detectionSubject.onNext(detectionType)
+    private fun isStableHeight(height: Float): Boolean {
+        // TODO check if measured height is stable height - consider the height of the gripper arm!
+        return false
+    }
+
+    private fun onDistance(distance: Float) {
+        logger.info("DETECTOR: distance: $distance")
+        if (distance <= Constants.ObstacleCheck.ROBOT_DETECTION_MAX_DISTANCE) {
+            detect(Obstacle.ROBOT)
+        }
+    }
+
+    private fun onObstacleForwardColor(colorId: ColorId) {
+        logger.info("DETECTOR: forward-color: $colorId")
+        if (colorId == Constants.ObstacleCheck.TREE_COLOR) {
+            detect(Obstacle.TREE)
+        } else if (!Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(colorId)) {
+            detect(Obstacle.ANIMAL)
+        } else if (FeederRobot.gripperArmPosition == GripperArmPosition.BOTTOM_OPEN) {
+            if (colorId == FeederRobot.feedColor) {
+                detect(Obstacle.FEED)
+            } else if (colorId == FeederRobot.opponentFeedColor) {
+                detect(Obstacle.FEED_OPPONENT)
+            }
+        }
+    }
+
+    private fun onVerticalColor(colorId: ColorId) { // only for stable detection
+        logger.info("DETECTOR: vertical-color: $colorId")
+        if (colorId == FeederRobot.stableColor) {
+            detect(Obstacle.STABLE)
+        } else if (colorId == FeederRobot.opponentStableColor) {
+            detect(Obstacle.STABLE_OPPONENT)
+        }
+    }
+
+    private fun onFeedScanForwardColor(colorId: ColorId) {
+        logger.info("DETECTOR: forward-color (Mode.SCAN): $colorId")
+
+        if (colorId.isValidFeedColor()) {
+            if (scannedColorId != colorId) {
+                scannedColorId = colorId
+                scanCounter = 0
+            } else if (scannedColorId == colorId) {
+                scanCounter++
+                logger.info("DETECTOR: $colorId scanned $scanCounter times")
+
+                if (scanCounter == Constants.FeedScan.SCAN_TIMES) {
+                    logger.info("DETECTOR: $colorId is the feed color")
+                    FeederRobot.feedColor = scannedColorId
+                    this.feedScanned = true
+                    detect(Obstacle.SCANNED_FEED)
+                }
+            }
+        } else {
+            logger.info("DETECTOR: Invalid feed color detected: $colorId")
+        }
+    }
+    // endregion
+
+    enum class DetectionType {
+        OBSTACLE, FEED_SCAN
     }
 }

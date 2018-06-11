@@ -1,6 +1,8 @@
 package com.angrynerds.ev3.extensions
 
+import com.angrynerds.ev3.util.Constants
 import lejos.robotics.Color
+import lejos.sensors.ColorId
 
 fun Color.getAwtColor(): java.awt.Color? {
     when (this.color) {
@@ -58,4 +60,9 @@ fun Color.getColorString(): String {
             return "UNKNOWN COLOR"
         }
     }
+}
+
+fun ColorId.isValidFeedColor(): Boolean {
+    return this == Constants.ObstacleCheck.I_AAH_FEED_COLOR
+            || this == Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
 }
