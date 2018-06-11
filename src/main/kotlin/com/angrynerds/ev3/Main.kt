@@ -166,11 +166,13 @@ fun onTree() {
 
     FeederRobot.moveRobotByDistance(50.0, false,
             Constants.Movement.HIGH_SPEED)
+
+    // TODO test if this works with high speed movement into tree - otherwise do nothing like on a fence
 }
 
 fun onFence() {
     printStatusOf("onFence")
-    // TODO check if something is here to do
+    // do nothing special
 }
 
 fun printStatusOf(funName: String) = rootLogger.info("$funName: " +
