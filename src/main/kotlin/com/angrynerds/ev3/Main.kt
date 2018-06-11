@@ -218,10 +218,10 @@ fun resetToInitialState() {
 fun openConnections() {
     rootLogger.info("Opening connections")
     FeederRobot.grabMotor
-    RxFeederRobot.rxUltrasonicSensor.distance.blockingFirst()
-    RxFeederRobot.rxInfraredSensor.distance.blockingFirst()
-    RxFeederRobot.rxColorSensorForward.colorId.blockingFirst()
-    RxFeederRobot.rxColorSensorVertical.colorId.blockingFirst()
+    RxFeederRobot.rxUltrasonicSensor.distance.subscribe { }
+    RxFeederRobot.rxInfraredSensor.distance.subscribe { }
+    RxFeederRobot.rxColorSensorForward.colorId.subscribe { }
+    RxFeederRobot.rxColorSensorVertical.colorId.subscribe { }
 }
 
 /**
