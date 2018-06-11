@@ -22,7 +22,8 @@ object Detector {
 
     private var scannedColorId = ColorId.NONE
     private var scanCounter = 0
-    private var feedScanned: Boolean = false
+    private var feedScanned = false
+    private var forwardColorSensorAdded = false
 
     init {
         logger = LogManager.getLogManager().getLogger("detector")
@@ -42,6 +43,7 @@ object Detector {
 
         val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
         subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
+        this.forwardColorSensorAdded = true
     }
 
     fun startDetectingObstacles() {
@@ -60,8 +62,11 @@ object Detector {
 
         if (!feedScanned) {
             logger.warning("DETECTOR: Detecting obstacles called without feed scanned.")
-            val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-            subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
+
+            if (!this.forwardColorSensorAdded) {
+                val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
+                subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
+            }
         }
     }
 
