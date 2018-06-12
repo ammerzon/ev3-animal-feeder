@@ -36,39 +36,22 @@ object FeederRobot {
 
     //region Modes
     var animalType = AnimalType.WINNIE_POOH
-        get() = field
-        set(value) {
-            field = value
-            when (field) {
-                AnimalType.WINNIE_POOH -> {
-                    feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
-                    opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
-                    stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
-                    opponentStableColor = Constants.StableDetection.I_AAH_FEED_COLOR
-                }
-                AnimalType.I_AAH -> {
-                    feedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
-                    opponentFeedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
-                    stableColor = Constants.StableDetection.I_AAH_FEED_COLOR
-                    opponentStableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
-                }
-            }
-        }
 
     var feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
         set(value) {
+            field = value
             when (value) {
                 Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR -> {
                     animalType = AnimalType.WINNIE_POOH
-                    opponentFeedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
-                    stableColor = Constants.StableDetection.I_AAH_FEED_COLOR
-                    opponentStableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
+                    opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
+                    stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
+                    opponentStableColor = Constants.StableDetection.I_AAH_STABLE_COLOR
                 }
                 Constants.ObstacleCheck.I_AAH_FEED_COLOR -> {
                     animalType = AnimalType.I_AAH
-                    opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
-                    stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
-                    opponentStableColor = Constants.StableDetection.I_AAH_FEED_COLOR
+                    opponentFeedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
+                    stableColor = Constants.StableDetection.I_AAH_STABLE_COLOR
+                    opponentStableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
                 }
                 else -> {
                     rootLogger.warning("Trying to set invalid feed color (valid colors are YELLOW and GREEN)")
@@ -77,11 +60,11 @@ object FeederRobot {
         }
     var opponentFeedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
     var stableColor = Constants.StableDetection.WINNIE_POOH_STABLE_COLOR
-    var opponentStableColor = Constants.StableDetection.I_AAH_FEED_COLOR
+    var opponentStableColor = Constants.StableDetection.I_AAH_STABLE_COLOR
     var gripperArmPosition = GripperArmPosition.BOTTOM_OPEN
 
     var mode = Mode.DEFAULT
-    var action: Action = Action.DEFAULT
+    var action: Action = Action.IDLE
     var searchMode = SearchMode.FEED
     //endregion
 
@@ -129,27 +112,32 @@ object FeederRobot {
 
     fun avoidObstacle(delayAfterRotation: Long = 0) {
         val modeBefore: Mode = FeederRobot.mode
-        val actionBefore: Action = FeederRobot.action
 
-        action = Action.AVOIDING_OBSTACLE
+        block()
         moveRobotByDistance(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
         rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
-
         mode = modeBefore
-        action = actionBefore
+        unblock()
         //Thread.sleep(delayAfterRotation)
         moveRobot()
     }
 
     fun avoidPrecipice() {
         val modeBefore: Mode = FeederRobot.mode
-        val actionBefore: Action = FeederRobot.action
 
-        FeederRobot.action = Action.AVOIDING_PRECIPICE
+        block()
         FeederRobot.stopRobot(1000)
         FeederRobot.turnAround(true, 2000)
 
         mode = modeBefore
-        action = actionBefore
+        unblock()
+    }
+
+    fun unblock() {
+        action = Action.IDLE
+    }
+
+    fun block() {
+        action = Action.RUN
     }
 }

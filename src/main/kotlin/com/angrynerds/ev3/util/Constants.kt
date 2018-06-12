@@ -4,7 +4,7 @@ import lejos.sensors.ColorId
 
 object Constants {
     object FeedScan {
-        const val SCAN_TIMES = 3
+        const val SCAN_TIMES = 1
     }
 
     object Reset {
@@ -49,7 +49,7 @@ object Constants {
     object StableDetection {
         val STABLE_HEIGHT = 4f
         val WINNIE_POOH_STABLE_COLOR = ColorId.BLUE
-        val I_AAH_FEED_COLOR = ColorId.WHITE
+        val I_AAH_STABLE_COLOR = ColorId.WHITE
     }
 
     object GripperArm {

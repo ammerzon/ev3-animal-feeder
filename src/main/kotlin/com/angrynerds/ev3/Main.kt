@@ -5,6 +5,7 @@ import com.angrynerds.ev3.core.FeederRobot
 import com.angrynerds.ev3.core.RxFeederRobot
 import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.*
+import com.angrynerds.ev3.extensions.isValidFeedColor
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -31,19 +32,21 @@ fun main(args: Array<String>) {
     println("Press a button to scan feed...")
     Button.waitForAnyPress()
     scan()
-
-    println("Press a button to close the program...")
-    Button.waitForAnyPress()
-    FeederRobot.close()
 }
 
 fun Observable<Obstacle>.filterProcesses(): Observable<Obstacle> {
-    return this.filter { FeederRobot.action != Action.AVOIDING_PRECIPICE || FeederRobot.action != Action.AVOIDING_OBSTACLE }
+    return this.filter {
+        FeederRobot.action == Action.IDLE
+
+    }
 }
 
 fun scan() {
-    Detector.obstacles.filter { it == Obstacle.SCANNED_FEED }.filterProcesses().subscribe { onFeedScanned() }
+//    Detector.obstacles.filter { it == Obstacle.SCANNED_FEED }.filterProcesses().subscribe { onFeedScanned() }
     Detector.startScan()
+    while (!Detector.scannedColorId.isValidFeedColor()) {
+    }
+    onFeedScanned()
 }
 
 fun onFeedScanned() {
@@ -56,17 +59,18 @@ fun onFeedScanned() {
         AnimalType.I_AAH -> Sound.playSample(File(SoundEffects.DONKEY.fileName))
     }
 
+    println("Press button to continue...")
     val buttonResult = Button.waitForAnyPress()
 
     when (buttonResult) {
         Button.ID_ESCAPE -> scan()
         Button.ID_LEFT -> {
-            FeederRobot.animalType = AnimalType.I_AAH
+            FeederRobot.feedColor = Constants.ObstacleCheck.I_AAH_FEED_COLOR
             rootLogger.info("I Aah (Green) is set as feed color.")
             run()
         }
         Button.ID_RIGHT -> {
-            FeederRobot.animalType = AnimalType.WINNIE_POOH
+            FeederRobot.feedColor = Constants.ObstacleCheck.WINNIE_POOH_FEED_COLOR
             rootLogger.info("Winnie Pooh (Yellow) is set as feed color.")
             run()
         }
@@ -92,12 +96,18 @@ fun run() {
 
     Detector.startDetectingObstacles()
     FeederRobot.moveRobot()
+
+    println("Press a button to close the program...")
+    Button.waitForAnyPress()
+    FeederRobot.close()
 }
 
 fun onStableHeight() {
     printStatusOf("onStableHeight")
+    FeederRobot.block()
     FeederRobot.stopRobot()
     FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
+    FeederRobot.unblock()
     FeederRobot.mode = Mode.APPROACHING_STABLE
 }
 
@@ -120,12 +130,15 @@ fun onStable() {
     printStatusOf("onStable")
     if (FeederRobot.searchMode == SearchMode.STABLE) {
         if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
+            FeederRobot.block()
             FeederRobot.searchMode = SearchMode.FEED
             FeederRobot.stopRobot()
             moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
-            moveGripperArmTo(GripperArmPosition.TOP)
-            printStatusOf("onPrecipice")
+            moveGripperArmTo(GripperArmPosition.STABLE)
+            FeederRobot.moveRobotByDistance(1.5 * Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+            moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
             FeederRobot.turnAround()
+            FeederRobot.unblock()
         } else {
             // should not happen!
             rootLogger.warning("Stable found but robot did not approach stable before")
@@ -138,34 +151,42 @@ fun onStable() {
 
 fun onOpponentFeed() {
     printStatusOf("onOpponentFeed")
+    FeederRobot.block()
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
+    FeederRobot.unblock()
 }
 
 fun onFeed() {
     if (FeederRobot.searchMode == SearchMode.FEED) {
         printStatusOf("onFeed")
         FeederRobot.searchMode = SearchMode.STABLE
+        FeederRobot.block()
         FeederRobot.stopRobot()
         moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
         moveGripperArmTo(GripperArmPosition.STABLE)
+        FeederRobot.unblock()
         FeederRobot.moveRobot()
     }
 }
 
 fun onAnimal() {
     printStatusOf("onAnimal")
+    FeederRobot.block()
     FeederRobot.stopRobot(1000)
     FeederRobot.avoidObstacle()
+    FeederRobot.unblock()
 }
 
 fun onTree() {
     // TODO case when infrared sensor is on same height as tree
     printStatusOf("onTree")
+    FeederRobot.block()
     FeederRobot.stopRobot(1000)
 
     FeederRobot.moveRobotByDistance(50.0, false,
             Constants.Movement.HIGH_SPEED)
+    FeederRobot.unblock()
 
     // TODO test if this works with high speed movement into tree - otherwise do nothing like on a fence
 }

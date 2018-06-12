@@ -20,53 +20,45 @@ object Detector {
     private val subscribers = CompositeDisposable()
     var detectionType = DetectionType.FEED_SCAN
 
-    private var scannedColorId = ColorId.NONE
-    private var scanCounter = 0
+    var scannedColorId = ColorId.NONE
     private var feedScanned = false
-    private var forwardColorSensorAdded = false
 
     init {
         logger = LogManager.getLogManager().getLogger("detector")
         logger.addHandler(EV3LogHandler())
-        logger.info("DETECTOR: Detector started")
+        logger.info("Detector started")
     }
 
     fun startScan() {
-        logger.info("DETECTOR: Start scanning feed")
+        logger.info("Start scanning feed")
 
         detectionType = DetectionType.FEED_SCAN
         feedScanned = false
-        scanCounter = 0
         scannedColorId = ColorId.NONE
 
-        subscribers.clear()
+        onForwardColorSensor(ColorId.Companion.colorId(FeederRobot.colorSensorForward.colorID))
 
-        val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-        subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
-        this.forwardColorSensorAdded = true
+        subscribers.clear()
     }
 
     fun startDetectingObstacles() {
         detectionType = DetectionType.OBSTACLE
-        logger.info("DETECTOR: Start detecting obstacles")
+        logger.info("Start detecting obstacles")
 
         val ultrasonicObservable = RxFeederRobot.rxUltrasonicSensor.distance
         val infraredObservable = RxFeederRobot.rxInfraredSensor.distance
         val colorVerticalObservable = RxFeederRobot.rxColorSensorVertical.colorId
+        val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
 
         subscribers.addAll(
                 ultrasonicObservable.subscribe(::onUltrasonicSensor),
                 infraredObservable.subscribe(::onInfraredSensor),
-                colorVerticalObservable.subscribe(::onVerticalColorSensor)
+                colorVerticalObservable.subscribe(::onVerticalColorSensor),
+                colorForwardObservable.subscribe(::onForwardColorSensor)
         )
 
         if (!feedScanned) {
-            logger.warning("DETECTOR: Detecting obstacles called without feed scanned.")
-
-            if (!this.forwardColorSensorAdded) {
-                val colorForwardObservable = RxFeederRobot.rxColorSensorForward.colorId
-                subscribers.add(colorForwardObservable.subscribe(::onForwardColorSensor))
-            }
+            logger.warning("Detecting obstacles called without feed scanned.")
         }
     }
 
@@ -106,7 +98,7 @@ object Detector {
 
     // region events
     private fun onHeight(height: Float) {
-        logger.info("DETECTOR: height: $height")
+        logger.info("height: $height")
         when {
             height < -10 -> {
                 detect(Obstacle.PRECIPICE)
@@ -115,9 +107,9 @@ object Detector {
             isStableHeight(height) -> {
                 detect(Obstacle.STABLE_HEIGHT)
             }
-            isFenceHeight(height) -> {
-                detect(Obstacle.FENCE)
-            }
+//            isFenceHeight(height) -> {
+//                detect(Obstacle.FENCE)
+//            }
         }
     }
 
@@ -127,21 +119,21 @@ object Detector {
     }
 
     private fun isStableHeight(height: Float): Boolean {
-        // TODO check if measured height is stable height - consider the height of the gripper arm!
-        return false
+        logger.info("isStableHeight? $height")
+        return height >= 6
     }
 
     private fun onDistance(distance: Float) {
-        logger.info("DETECTOR: distance: $distance")
+        logger.info("distance: $distance")
         if (distance <= Constants.ObstacleCheck.ROBOT_DETECTION_MAX_DISTANCE) {
             detect(Obstacle.ROBOT)
         }
     }
 
     private fun onObstacleForwardColor(colorId: ColorId) {
-        logger.info("DETECTOR: forward-color: $colorId")
+        logger.info("forward-color: $colorId")
         if (colorId == Constants.ObstacleCheck.TREE_COLOR) {
-            detect(Obstacle.TREE)
+//            detect(Obstacle.TREE)
         } else if (!Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(colorId)) {
             detect(Obstacle.ANIMAL)
         } else if (FeederRobot.gripperArmPosition == GripperArmPosition.BOTTOM_OPEN) {
@@ -154,7 +146,7 @@ object Detector {
     }
 
     private fun onVerticalColor(colorId: ColorId) { // only for stable detection
-        logger.info("DETECTOR: vertical-color: $colorId")
+        logger.info("vertical-color: $colorId")
         if (colorId == FeederRobot.stableColor) {
             detect(Obstacle.STABLE)
         } else if (colorId == FeederRobot.opponentStableColor) {
@@ -163,25 +155,17 @@ object Detector {
     }
 
     private fun onFeedScanForwardColor(colorId: ColorId) {
-        logger.info("DETECTOR: forward-color (Mode.SCAN): $colorId")
+        logger.info("forward-color (Mode.SCAN): $colorId")
 
         if (colorId.isValidFeedColor()) {
-            if (scannedColorId != colorId) {
-                scannedColorId = colorId
-                scanCounter = 0
-            } else if (scannedColorId == colorId) {
-                scanCounter++
-                logger.info("DETECTOR: $colorId scanned $scanCounter times")
-
-                if (scanCounter == Constants.FeedScan.SCAN_TIMES) {
-                    logger.info("DETECTOR: $colorId is the feed color")
-                    FeederRobot.feedColor = scannedColorId
-                    this.feedScanned = true
-                    detect(Obstacle.SCANNED_FEED)
-                }
-            }
+            logger.info("$colorId is the feed color")
+            this.scannedColorId = colorId
+            FeederRobot.feedColor = scannedColorId
+            this.feedScanned = true
         } else {
-            logger.info("DETECTOR: Invalid feed color detected: $colorId")
+            logger.info("Invalid feed color detected: $colorId")
+            logger.info("Retrying ...")
+            onForwardColorSensor(ColorId.Companion.colorId(FeederRobot.colorSensorForward.colorID))
         }
     }
     // endregion
