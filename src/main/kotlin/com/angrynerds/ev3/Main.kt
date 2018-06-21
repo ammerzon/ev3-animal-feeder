@@ -150,6 +150,7 @@ fun onStable() {
 fun onOpponentFeed() {
     FeederRobot.access {
         printStatusOf("onOpponentFeed")
+        Sound.playSample(File(SoundEffects.YHAC.fileName))
         FeederRobot.stopRobot(1000)
         FeederRobot.avoidObstacle()
     }

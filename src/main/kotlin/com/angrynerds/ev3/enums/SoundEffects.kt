@@ -9,7 +9,8 @@ enum class SoundEffects(val fileName: String) {
     ERROR("error.wav"),
     MLG_HORNS("mlg_horns.wav"),
     OVER_9000("over_9000.wav"),
-    SUPER_MARIO_COIN("super_mario_coin.wav");
+    SUPER_MARIO_COIN("super_mario_coin.wav"),
+    YHAC("yhac.wav");
 
     companion object {
         fun getRandomSuccessSound(): SoundEffects {
