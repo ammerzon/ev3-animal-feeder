@@ -132,6 +132,7 @@ fun onStable() {
                 FeederRobot.searchMode = SearchMode.FEED
                 FeederRobot.stopRobot()
                 moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+                FeederRobot.moveRobotByDistance(-70.0)
                 moveGripperArmTo(GripperArmPosition.STABLE)
                 FeederRobot.moveRobotByDistance(1.5 * Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
                 moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)

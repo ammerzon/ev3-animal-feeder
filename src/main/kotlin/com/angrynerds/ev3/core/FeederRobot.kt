@@ -156,11 +156,7 @@ object FeederRobot {
             block()
         }
 
-        rootLogger.info("exec robot action")
-
         robotAction()
-
-        rootLogger.info("end exec robot action")
 
         unblock()
     }

@@ -55,15 +55,15 @@ object Constants {
     object GripperArm {
         const val SPEED = 800
         const val BOTTOM_OPEN_ANGLE = 0.0
-        const val BOTTOM_CLOSED_ANGLE = 1650.0
+        const val BOTTOM_CLOSED_ANGLE = 1700.0
         const val MIDDLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1500.0
-        const val STABLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1300.0
+        const val STABLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1200.0
         const val TOP_ANGLE = BOTTOM_CLOSED_ANGLE + 3300.0
     }
 
     object Movement {
         const val DEFAULT_SPEED = 80.0
-        const val SLOW_SPEED = 20.0
+        const val SLOW_SPEED = 25.0
         const val HIGH_SPEED = 160.0
     }
 
