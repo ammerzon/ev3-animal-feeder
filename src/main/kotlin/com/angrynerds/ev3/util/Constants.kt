@@ -63,7 +63,7 @@ object Constants {
 
     object Movement {
         const val DEFAULT_SPEED = 80.0
-        const val SLOW_SPEED = 25.0
+        const val SLOW_SPEED = 30.0
         const val HIGH_SPEED = 160.0
     }
 
