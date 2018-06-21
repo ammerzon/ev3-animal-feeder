@@ -7,7 +7,6 @@ import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.*
 import com.angrynerds.ev3.extensions.isValidFeedColor
 import com.angrynerds.ev3.util.Constants
-import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import lejos.hardware.Button
 import lejos.hardware.Sound
@@ -32,13 +31,6 @@ fun main(args: Array<String>) {
     println("Press a button to scan feed...")
     Button.waitForAnyPress()
     scan()
-}
-
-fun Observable<Obstacle>.filterProcesses(): Observable<Obstacle> {
-    return this.filter {
-        FeederRobot.action == Action.IDLE
-
-    }
 }
 
 fun scan() {
@@ -83,16 +75,16 @@ fun run() {
     println("Press a button to start execution...")
     Button.waitForAnyPress()
 
-    Detector.obstacles.filter { it == Obstacle.STABLE }.filterProcesses().subscribe { onStable() }
-    Detector.obstacles.filter { it == Obstacle.STABLE_OPPONENT }.filterProcesses().subscribe { onOpponentStable() }
-    Detector.obstacles.filter { it == Obstacle.STABLE_HEIGHT }.filterProcesses().subscribe { onStableHeight() }
-    Detector.obstacles.filter { it == Obstacle.FEED }.filterProcesses().subscribe { onFeed() }
-    Detector.obstacles.filter { it == Obstacle.FEED_OPPONENT }.filterProcesses().subscribe { onOpponentFeed() }
-    Detector.obstacles.filter { it == Obstacle.FENCE }.filterProcesses().subscribe { onFence() }
-    Detector.obstacles.filter { it == Obstacle.TREE }.filterProcesses().subscribe { onTree() }
-    Detector.obstacles.filter { it == Obstacle.ANIMAL }.filterProcesses().subscribe { onAnimal() }
-    Detector.obstacles.filter { it == Obstacle.ROBOT }.filterProcesses().subscribe { onRobot() }
-    Detector.obstacles.filter { it == Obstacle.PRECIPICE }.filterProcesses().subscribe { onPrecipice() }
+    Detector.obstacles.filter { it == Obstacle.STABLE }.subscribe { onStable() }
+    Detector.obstacles.filter { it == Obstacle.STABLE_OPPONENT }.subscribe { onOpponentStable() }
+    Detector.obstacles.filter { it == Obstacle.STABLE_HEIGHT }.subscribe { onStableHeight() }
+    Detector.obstacles.filter { it == Obstacle.FEED }.subscribe { onFeed() }
+    Detector.obstacles.filter { it == Obstacle.FEED_OPPONENT }.subscribe { onOpponentFeed() }
+    Detector.obstacles.filter { it == Obstacle.FENCE }.subscribe { onFence() }
+    Detector.obstacles.filter { it == Obstacle.TREE }.subscribe { onTree() }
+    Detector.obstacles.filter { it == Obstacle.ANIMAL }.subscribe { onAnimal() }
+    Detector.obstacles.filter { it == Obstacle.ROBOT }.subscribe { onRobot() }
+    Detector.obstacles.filter { it == Obstacle.PRECIPICE }.subscribe { onPrecipice() }
 
     Detector.startDetectingObstacles()
     FeederRobot.moveRobot()
@@ -103,90 +95,97 @@ fun run() {
 }
 
 fun onStableHeight() {
-    printStatusOf("onStableHeight")
-    FeederRobot.block()
-    FeederRobot.stopRobot()
-    FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
-    FeederRobot.unblock()
-    FeederRobot.mode = Mode.APPROACHING_STABLE
+    FeederRobot.access {
+        printStatusOf("onStableHeight")
+        FeederRobot.stopRobot()
+        FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
+        FeederRobot.mode = Mode.APPROACHING_STABLE
+    }
 }
 
 private fun onPrecipice() {
-    printStatusOf("onPrecipice")
-    FeederRobot.avoidPrecipice()
+    FeederRobot.access(false) {
+        printStatusOf("onPrecipice")
+        FeederRobot.avoidPrecipice()
+    }
 }
 
 fun onRobot() {
-    printStatusOf("onRobot")
-    FeederRobot.avoidObstacle()
+    FeederRobot.access {
+        printStatusOf("onRobot")
+        FeederRobot.avoidObstacle()
+    }
 }
 
 fun onOpponentStable() {
-    printStatusOf("onOpponentStable")
-    FeederRobot.avoidObstacle()
+    FeederRobot.access {
+        printStatusOf("onOpponentStable")
+        FeederRobot.avoidObstacle()
+    }
 }
 
 fun onStable() {
-    printStatusOf("onStable")
-    if (FeederRobot.searchMode == SearchMode.STABLE) {
-        if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
-            FeederRobot.block()
-            FeederRobot.searchMode = SearchMode.FEED
-            FeederRobot.stopRobot()
-            moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
-            moveGripperArmTo(GripperArmPosition.STABLE)
-            FeederRobot.moveRobotByDistance(1.5 * Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
-            moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
-            FeederRobot.turnAround()
-            FeederRobot.unblock()
+    FeederRobot.access {
+        printStatusOf("onStable")
+        if (FeederRobot.searchMode == SearchMode.STABLE) {
+            if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
+                FeederRobot.searchMode = SearchMode.FEED
+                FeederRobot.stopRobot()
+                moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+                moveGripperArmTo(GripperArmPosition.STABLE)
+                FeederRobot.moveRobotByDistance(1.5 * Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
+                moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
+                FeederRobot.turnAround()
+            } else {
+                // should not happen!
+                rootLogger.warning("Stable found but robot did not approach stable before")
+            }
         } else {
-            // should not happen!
-            rootLogger.warning("Stable found but robot did not approach stable before")
+            // stable detected, but no feed picked up before
+            FeederRobot.turnAround()
         }
-    } else {
-        // stable detected, but no feed picked up before
-        FeederRobot.turnAround()
     }
 }
 
 fun onOpponentFeed() {
-    printStatusOf("onOpponentFeed")
-    FeederRobot.block()
-    FeederRobot.stopRobot(1000)
-    FeederRobot.avoidObstacle()
-    FeederRobot.unblock()
+    FeederRobot.access {
+        printStatusOf("onOpponentFeed")
+        FeederRobot.stopRobot(1000)
+        FeederRobot.avoidObstacle()
+    }
 }
 
 fun onFeed() {
     if (FeederRobot.searchMode == SearchMode.FEED) {
-        printStatusOf("onFeed")
-        FeederRobot.searchMode = SearchMode.STABLE
-        FeederRobot.block()
-        FeederRobot.stopRobot()
-        moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
-        moveGripperArmTo(GripperArmPosition.STABLE)
-        FeederRobot.unblock()
-        FeederRobot.moveRobot()
+        FeederRobot.access {
+            printStatusOf("onFeed")
+            FeederRobot.searchMode = SearchMode.STABLE
+
+            FeederRobot.stopRobot()
+            moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
+            moveGripperArmTo(GripperArmPosition.STABLE)
+            FeederRobot.moveRobot()
+        }
     }
 }
 
 fun onAnimal() {
     printStatusOf("onAnimal")
-    FeederRobot.block()
-    FeederRobot.stopRobot(1000)
-    FeederRobot.avoidObstacle()
-    FeederRobot.unblock()
+    FeederRobot.access {
+        FeederRobot.stopRobot(1000)
+        FeederRobot.avoidObstacle()
+    }
 }
 
 fun onTree() {
     // TODO case when infrared sensor is on same height as tree
     printStatusOf("onTree")
-    FeederRobot.block()
-    FeederRobot.stopRobot(1000)
+    FeederRobot.access {
+        FeederRobot.stopRobot(1000)
 
-    FeederRobot.moveRobotByDistance(50.0, false,
-            Constants.Movement.HIGH_SPEED)
-    FeederRobot.unblock()
+        FeederRobot.moveRobotByDistance(50.0, false,
+                Constants.Movement.HIGH_SPEED)
+    }
 
     // TODO test if this works with high speed movement into tree - otherwise do nothing like on a fence
 }

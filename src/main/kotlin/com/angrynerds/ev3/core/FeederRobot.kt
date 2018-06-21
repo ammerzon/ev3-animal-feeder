@@ -113,11 +113,10 @@ object FeederRobot {
     fun avoidObstacle(delayAfterRotation: Long = 0) {
         val modeBefore: Mode = FeederRobot.mode
 
-        block()
         moveRobotByDistance(Constants.PrecipiceDetection.BACKWARD_TRAVEL_DISTANCE)
         rotateRobot(Constants.ObstacleCheck.ROTATION_ANGLE)
         mode = modeBefore
-        unblock()
+
         //Thread.sleep(delayAfterRotation)
         moveRobot()
     }
@@ -125,19 +124,36 @@ object FeederRobot {
     fun avoidPrecipice() {
         val modeBefore: Mode = FeederRobot.mode
 
-        block()
         FeederRobot.stopRobot(1000)
         FeederRobot.turnAround(true, 2000)
 
         mode = modeBefore
+    }
+
+    private fun block() {
+        synchronized(action) {
+            action = Action.RUN
+        }
+    }
+
+    private fun unblock() {
+
+        synchronized(action) {
+            action = Action.IDLE
+        }
+    }
+
+    fun access(blocking: Boolean = true, robotAction: () -> Unit) {
+        if (blocking) {
+            synchronized(action) {
+                if (action == Action.RUN)
+                    return
+                block()
+            }
+        }
+
+        robotAction()
+
         unblock()
-    }
-
-    fun unblock() {
-        action = Action.IDLE
-    }
-
-    fun block() {
-        action = Action.RUN
     }
 }
