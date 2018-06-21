@@ -68,6 +68,8 @@ object FeederRobot {
     var searchMode = SearchMode.FEED
     //endregion
 
+    var blockCounter = 0
+
     fun close() {
         val devices = arrayOf(tractionMotorRight, tractionMotorLeft, grabMotor, infraredSensor, colorSensorVertical, colorSensorForward, ultrasonicSensor)
         devices.forEach(Device::close)
@@ -131,28 +133,34 @@ object FeederRobot {
     }
 
     private fun block() {
-        synchronized(action) {
+        synchronized(this) {
             action = Action.RUN
+            blockCounter++
         }
     }
 
     private fun unblock() {
-
-        synchronized(action) {
-            action = Action.IDLE
+        synchronized(this) {
+            blockCounter--
+            if (blockCounter == 0)
+                action = Action.IDLE
         }
     }
 
     fun access(blocking: Boolean = true, robotAction: () -> Unit) {
-        if (blocking) {
-            synchronized(action) {
+        synchronized(this) {
+            if (blocking) {
                 if (action == Action.RUN)
                     return
-                block()
             }
+            block()
         }
 
+        rootLogger.info("exec robot action")
+
         robotAction()
+
+        rootLogger.info("end exec robot action")
 
         unblock()
     }

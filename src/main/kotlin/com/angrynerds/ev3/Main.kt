@@ -104,7 +104,7 @@ fun onStableHeight() {
 }
 
 private fun onPrecipice() {
-    FeederRobot.access(false) {
+    FeederRobot.access {
         printStatusOf("onPrecipice")
         FeederRobot.avoidPrecipice()
     }
@@ -156,10 +156,11 @@ fun onOpponentFeed() {
 }
 
 fun onFeed() {
-    if (FeederRobot.searchMode == SearchMode.FEED) {
-        FeederRobot.access {
-            printStatusOf("onFeed")
+    FeederRobot.access {
+        printStatusOf("onFeed")
+        if (FeederRobot.searchMode == SearchMode.FEED) {
             Sound.playSample(File(SoundEffects.getRandomSuccessSound().fileName))
+
             FeederRobot.searchMode = SearchMode.STABLE
 
             FeederRobot.stopRobot()
@@ -171,8 +172,8 @@ fun onFeed() {
 }
 
 fun onAnimal() {
-    printStatusOf("onAnimal")
     FeederRobot.access {
+        printStatusOf("onAnimal")
         FeederRobot.stopRobot(1000)
         FeederRobot.avoidObstacle()
     }
@@ -180,8 +181,8 @@ fun onAnimal() {
 
 fun onTree() {
     // TODO case when infrared sensor is on same height as tree
-    printStatusOf("onTree")
     FeederRobot.access {
+        printStatusOf("onTree")
         FeederRobot.stopRobot(1000)
 
         FeederRobot.moveRobotByDistance(50.0, false,

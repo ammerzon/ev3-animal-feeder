@@ -1,6 +1,5 @@
 package com.angrynerds.ev3.core
 
-import com.angrynerds.ev3.debug.EV3LogHandler
 import com.angrynerds.ev3.enums.GripperArmPosition
 import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
@@ -25,7 +24,7 @@ object Detector {
 
     init {
         logger = LogManager.getLogManager().getLogger("detector")
-        logger.addHandler(EV3LogHandler())
+        //logger.addHandler(EV3LogHandler())
         logger.info("Detector started")
     }
 
