@@ -97,9 +97,13 @@ fun run() {
 fun onStableHeight() {
     FeederRobot.access {
         printStatusOf("onStableHeight")
-        FeederRobot.stopRobot()
-        FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
-        FeederRobot.mode = Mode.APPROACHING_STABLE
+        if (FeederRobot.searchMode == SearchMode.STABLE) {
+            FeederRobot.stopRobot()
+            FeederRobot.moveRobot(Constants.Movement.SLOW_SPEED)
+            FeederRobot.mode = Mode.APPROACHING_STABLE
+        } else {
+            FeederRobot.turnAround()
+        }
     }
 }
 

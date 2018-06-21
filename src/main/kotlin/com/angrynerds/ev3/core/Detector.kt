@@ -119,7 +119,7 @@ object Detector {
 
     private fun isStableHeight(height: Float): Boolean {
         logger.info("isStableHeight? $height")
-        return height >= 6
+        return height >= Constants.StableDetection.STABLE_MIN_HEIGHT
     }
 
     private fun onDistance(distance: Float) {
