@@ -1,8 +1,8 @@
 package com.angrynerds.ev3.extensions
 
+import com.angrynerds.ev3.lejos.robotics.ColorId
 import com.angrynerds.ev3.util.Constants
 import lejos.robotics.Color
-import lejos.sensors.ColorId
 
 fun Color.getAwtColor(): java.awt.Color? {
     when (this.color) {

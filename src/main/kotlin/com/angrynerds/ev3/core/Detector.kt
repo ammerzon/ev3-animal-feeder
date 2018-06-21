@@ -6,10 +6,10 @@ import com.angrynerds.ev3.enums.Obstacle
 import com.angrynerds.ev3.extensions.getCmFromIRValue
 import com.angrynerds.ev3.extensions.getCmFromUSValue
 import com.angrynerds.ev3.extensions.isValidFeedColor
+import com.angrynerds.ev3.lejos.robotics.ColorId
 import com.angrynerds.ev3.util.Constants
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
-import lejos.sensors.ColorId
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
@@ -133,7 +133,7 @@ object Detector {
     private fun onObstacleForwardColor(colorId: ColorId) {
         logger.info("forward-color: $colorId")
         if (colorId == Constants.ObstacleCheck.TREE_COLOR) {
-//            detect(Obstacle.TREE)
+            // detect(Obstacle.TREE)
         } else if (!Constants.ObstacleCheck.NOT_ANIMAL_COLORS.contains(colorId)) {
             detect(Obstacle.ANIMAL)
         } else if (FeederRobot.gripperArmPosition == GripperArmPosition.BOTTOM_OPEN) {
