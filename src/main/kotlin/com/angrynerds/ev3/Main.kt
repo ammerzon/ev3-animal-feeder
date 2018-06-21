@@ -159,6 +159,7 @@ fun onFeed() {
     if (FeederRobot.searchMode == SearchMode.FEED) {
         FeederRobot.access {
             printStatusOf("onFeed")
+            Sound.playSample(File(SoundEffects.getRandomSuccessSound().fileName))
             FeederRobot.searchMode = SearchMode.STABLE
 
             FeederRobot.stopRobot()
