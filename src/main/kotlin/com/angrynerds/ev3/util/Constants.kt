@@ -47,7 +47,7 @@ object Constants {
     }
 
     object StableDetection {
-        val STABLE_MIN_HEIGHT = 4f
+        val STABLE_MIN_HEIGHT = 3f
         val WINNIE_POOH_STABLE_COLOR = ColorId.BLUE
         val I_AAH_STABLE_COLOR = ColorId.WHITE
     }
