@@ -17,8 +17,8 @@ object Constants {
         val ULTRASONIC_THRESHOLD_GRABBER_UP = 0.19..0.21
         // vertical distance between the floor and the ultrasonic sensor when the grabber position is down
         val ULTRASONIC_THRESHOLD_GRABBER_DOWN = 0.04..0.06
-        // should be 90 degress
-        const val ROTATION_ANGLE = 60.0
+        // should be 70 degress
+        const val ROTATION_ANGLE = 40.0
         const val BACKWARD_TRAVEL_DISTANCE = -120.0
     }
 
@@ -57,13 +57,13 @@ object Constants {
         const val BOTTOM_OPEN_ANGLE = 0.0
         const val BOTTOM_CLOSED_ANGLE = 1700.0
         const val MIDDLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1500.0
-        const val STABLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1200.0
+        const val STABLE_ANGLE = BOTTOM_CLOSED_ANGLE + 1100.0
         const val TOP_ANGLE = BOTTOM_CLOSED_ANGLE + 3300.0
     }
 
     object Movement {
         const val DEFAULT_SPEED = 80.0
-        const val SLOW_SPEED = 30.0
+        const val SLOW_SPEED = 50.0
         const val HIGH_SPEED = 160.0
     }
 
