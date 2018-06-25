@@ -74,7 +74,7 @@ fun run() {
     LCD.clear()
     println("Press a button to start execution...")
     Button.waitForAnyPress()
-    Thread{Sound.playSample(File(SoundEffects.SPARTA.fileName))}.start()
+    Thread { Sound.playSample(File(SoundEffects.SPARTA.fileName)) }.start()
 
     Detector.obstacles.filter { it == Obstacle.STABLE }.subscribe { onStable() }
     Detector.obstacles.filter { it == Obstacle.STABLE_OPPONENT }.subscribe { onOpponentStable() }
@@ -111,7 +111,7 @@ fun onStableHeight() {
 private fun onPrecipice() {
     FeederRobot.access {
         printStatusOf("onPrecipice")
-        Thread({Sound.playSample(File(SoundEffects.ERROR.fileName))}).start()
+        Thread({ Sound.playSample(File(SoundEffects.ERROR.fileName)) }).start()
         FeederRobot.avoidPrecipice()
     }
 }
@@ -119,7 +119,7 @@ private fun onPrecipice() {
 fun onRobot() {
     FeederRobot.access {
         printStatusOf("onRobot")
-        Thread{Sound.playSample(File(SoundEffects.WTF.fileName))}.start()
+        Thread { Sound.playSample(File(SoundEffects.WTF.fileName)) }.start()
         FeederRobot.avoidObstacle()
     }
 }
@@ -139,7 +139,7 @@ fun onStable() {
             if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
                 FeederRobot.searchMode = SearchMode.FEED
                 FeederRobot.stopRobot()
-                Thread{Sound.playSample(File(SoundEffects.MLG_HORNS.fileName))}.start()
+                Thread { Sound.playSample(File(SoundEffects.MLG_HORNS.fileName)) }.start()
                 moveGripperArmTo(GripperArmPosition.BOTTOM_OPEN)
                 FeederRobot.moveRobotByDistance(-70.0)
                 moveGripperArmTo(GripperArmPosition.STABLE)
@@ -161,7 +161,7 @@ fun onOpponentFeed() {
     FeederRobot.access {
         printStatusOf("onOpponentFeed")
         FeederRobot.stopRobot(1000)
-        Thread{Sound.playSample(File(SoundEffects.NOPE.fileName))}.start()
+        Thread { Sound.playSample(File(SoundEffects.NOPE.fileName)) }.start()
 
         FeederRobot.avoidObstacle()
     }
@@ -174,7 +174,7 @@ fun onFeed() {
             FeederRobot.searchMode = SearchMode.STABLE
 
             FeederRobot.stopRobot()
-            Thread{Sound.playSample(File(SoundEffects.SUPER_MARIO_COIN.fileName))}.start()
+            Thread { Sound.playSample(File(SoundEffects.SUPER_MARIO_COIN.fileName)) }.start()
             moveGripperArmTo(GripperArmPosition.BOTTOM_CLOSED)
             moveGripperArmTo(GripperArmPosition.STABLE)
             FeederRobot.moveRobot()
