@@ -125,10 +125,12 @@ fun onRobot() {
 }
 
 fun onOpponentStable() {
-    FeederRobot.access {
-        printStatusOf("onOpponentStable")
-        Thread{Sound.playSample(File(SoundEffects.BARK.fileName))}.start()
-        FeederRobot.avoidObstacle()
+    if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
+        FeederRobot.access {
+            printStatusOf("onOpponentStable")
+            Thread { Sound.playSample(File(SoundEffects.BARK.fileName)) }.start()
+            FeederRobot.avoidObstacle()
+        }
     }
 }
 
@@ -152,7 +154,10 @@ fun onStable() {
             }
         } else {
             // stable detected, but no feed picked up before
-            FeederRobot.turnAround()
+
+            if (FeederRobot.mode == Mode.APPROACHING_STABLE) {
+                FeederRobot.turnAround()
+            }
         }
     }
 }
